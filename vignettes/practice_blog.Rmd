@@ -1,0 +1,12 @@
+---
+title: "A practice blog"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{A practice blog}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Practice
+
+Here we have text in Markdown! We'll see how it works. 
