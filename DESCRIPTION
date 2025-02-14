@@ -2,8 +2,10 @@ Package: blog
 Type: Package
 Title: StatDivLab Blog
 Version: 0.1.0
-Author: Amy Willis
-Maintainer: adwillis@uw.edu
+Authors@R: as.person(c(
+    "Amy Willis <adwillis@uw.edu> [aut, cre]", 
+    "Sarah Teichman [aut]"
+  ))
 Description: This is a way to host a blog for the Statistical Diversity Lab. 
 License: MIT + file LICENSE
 Encoding: UTF-8
