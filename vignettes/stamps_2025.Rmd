@@ -1,0 +1,12 @@
+---
+title: "STAMPS 2025: How to write a great application"
+author: "Amy D Willis"
+date: "February 14 2025"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{STAMPS 2025: How to write a great application}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+I'm working on this! I'll post to Bluesky when it's done...

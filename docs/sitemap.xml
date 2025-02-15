@@ -1,13 +1,15 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
-<url><loc>/404.html</loc></url>
-<url><loc>/LICENSE-text.html</loc></url>
-<url><loc>/LICENSE.html</loc></url>
-<url><loc>/articles/index.html</loc></url>
-<url><loc>/articles/practice_blog.html</loc></url>
-<url><loc>/authors.html</loc></url>
-<url><loc>/index.html</loc></url>
-<url><loc>/reference/description.html</loc></url>
-<url><loc>/reference/hello.html</loc></url>
-<url><loc>/reference/index.html</loc></url>
+<url><loc>https://statdivlab.github.io/blog.html/404.html</loc></url>
+<url><loc>https://statdivlab.github.io/blog.html/LICENSE-text.html</loc></url>
+<url><loc>https://statdivlab.github.io/blog.html/LICENSE.html</loc></url>
+<url><loc>https://statdivlab.github.io/blog.html/articles/index.html</loc></url>
+<url><loc>https://statdivlab.github.io/blog.html/articles/pnf_extn_spaces.html</loc></url>
+<url><loc>https://statdivlab.github.io/blog.html/articles/pnf_radEmu.html</loc></url>
+<url><loc>https://statdivlab.github.io/blog.html/articles/practice_blog.html</loc></url>
+<url><loc>https://statdivlab.github.io/blog.html/articles/stamps_2025.html</loc></url>
+<url><loc>https://statdivlab.github.io/blog.html/authors.html</loc></url>
+<url><loc>https://statdivlab.github.io/blog.html/index.html</loc></url>
+<url><loc>https://statdivlab.github.io/blog.html/reference/description.html</loc></url>
+<url><loc>https://statdivlab.github.io/blog.html/reference/index.html</loc></url>
 </urlset>
 

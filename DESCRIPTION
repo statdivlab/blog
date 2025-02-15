@@ -15,3 +15,4 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+URL: https://statdivlab.github.io/blog.html, https://statdivlab.github.io/blog/

@@ -4,84 +4,96 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>StatDivLab Blog • blog</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
-<script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
-<script src="pkgdown.js"></script><meta property="og:title" content="StatDivLab Blog">
+<script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<link href="deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="StatDivLab Blog">
+<meta name="description" content="This is a way to host a blog for the Statistical Diversity Lab.">
 <meta property="og:description" content="This is a way to host a blog for the Statistical Diversity Lab.">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
 </head>
-<body data-spy="scroll" data-target="#toc">
+<body>
+    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <div class="container template-home">
-      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="index.html">blog</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
-      </span>
-    </div>
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="reference/index.html">Reference</a>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Articles
+    <a class="navbar-brand me-2" href="index.html">blog</a>
 
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="articles/practice_blog.html">A practice blog</a>
-    </li>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar" class="collapse navbar-collapse ms-3">
+      <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/pnf_extn_spaces.html">PNF: Extension spaces for phylogenetic trees</a></li>
+    <li><a class="dropdown-item" href="articles/pnf_radEmu.html">PNF: radEmu for differential abundance</a></li>
+    <li><a class="dropdown-item" href="articles/stamps_2025.html">STAMPS 2025: How to write a great application</a></li>
   </ul>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
+</form></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
+      </ul>
 </div>
-<!--/.nav-collapse -->
+
+
   </div>
-<!--/.container -->
-</div>
-<!--/.navbar -->
-
-
-
-      </header><div class="row">
-  <div class="contents col-md-9">
-<div class="section level1">
+</nav><div class="container template-home">
+<div class="row">
+  <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="statdivlab-blog">StatDivLab Blog<a class="anchor" aria-label="anchor" href="#statdivlab-blog"></a>
 </h1></div>
-<p>Welcome to the Statistical Diversity Lab blog! Here you’ll find our thoughts on…</p>
-<p>List of blog posts with links:</p>
+<p>Feb 7 2025</p>
+<p>Hi all! I am reviving the blog. Here’s my plan:</p>
 <ul>
-<li>practice blog <a href="https://statdivlab.github.io/blog/articles/practice_blog.html" class="external-link">link</a>
+<li>It’ll be mostly me (Amy), but you might sometimes hear from lab members and collaborators, too.</li>
+<li>I’m going to prioritize getting <em>something</em> out there, and later I might try to make it beautiful/interlinked.
+<ul>
+<li>If you have these skillz and want to help, please get in touch!</li>
+</ul>
 </li>
+<li>Target audience is microbial ecologists, and others studying biodiversity using genomics. There’s technical underpinnings to all of this work, but I believe <em>everyone</em> can understand the most important concepts if they’re explained well. So, that’s on me! I’ll try to keep the math at maximum intuition and minimum technical details. I want to bring you along with me!</li>
+<li>To start, it’ll mostly be recaps of our work: PNF, for “Papers Need Friends.” (Thanks to the brilliant Taylor Reiter for this idea.) I find it challenging to write papers that accurately describe our work, but that also make clear to those-who-we-hope-to-recruit-as-users what we’re doing and why. We write for a range of journals along the spectrum of theoretical, to technical methodological, to non-technical methodological, to 100% science. So, when we write a paper that we hope will be thoughtfully reviewed by our statistician peers, we will write a blog post (a “Friend” for the paper) to explain to our users what it’s for, and informally outline how it works.</li>
+<li>Medium term plan is to get some course materials out there. STAMPS and various regression classes I’ve taught. God forbid I turn into a vlogger, but videos might be easier and prevent me agonizing for hours over written work.</li>
+<li>Long term: I have lofty plans to combat the enormous quantity of low-quality/wrong information out there about statistical analysis by making a mini encyclopedia of statistics (mostly with a microbial genomics emphasis) using Obsidian, but… well… let’s start small.<br>
+</li>
+<li>When I give seminars, I’ll do my best to link them here. Sometimes I don’t give exactly the seminar I want to give (eg because the organisers asked for something specific), so maybe this is a place to supplement those with notes that occur to me after the fact, or to respond to questions that weren’t recorded.<br>
+</li>
+<li>I’ll try to distinguish my opinion from fact. You should make up your own mind and not be drawn into rhetoric / factions. I hope to earn your trust, and be respectful of your time.</li>
+</ul>
+<p>I hope you enjoy the revamped StatDivLab blog!</p>
+<p>Amy Willis, PhD</p>
+<p>Principal Investigator, Statistical Diversity Lab</p>
+<p>Associate Professor of Biostatistics, University of Washington</p>
+<p><strong>Selected blog posts</strong> (you can see the full list under “Articles”):</p>
+<ul>
+<li><a href="https://statdivlab.github.io/blog/articles/pnf_extn_spaces.html" class="external-link">Papers Need Friends: Extension Spaces</a></li>
+<li><a href="https://statdivlab.github.io/blog/articles/pnf_radEmu.html" class="external-link">Papers Need Friends: radEmu</a></li>
+<li><a href="https://statdivlab.github.io/blog/articles/stamps_2025.html" class="external-link">How to write a great STAMPS 2025 application</a></li>
 </ul>
 <p>Click <a href="https://statdivlab.github.io/index.html" class="external-link">here</a> to return to our lab website.</p>
 </div>
-  </div>
-
-  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-    <div class="license">
+  </main><aside class="col-md-3"><div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li><a href="LICENSE.html">Full license</a></li>
@@ -107,23 +119,20 @@
 
 
 
-  </div>
+  </aside>
 </div>
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by Amy Willis, Sarah Teichman.</p>
+    <footer><div class="pkgdown-footer-left">
+  <p>Developed by Amy Willis, Sarah Teichman.</p>
 </div>
 
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+<div class="pkgdown-footer-right">
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
-      </footer>
+    </footer>
 </div>
-
 
 
 
