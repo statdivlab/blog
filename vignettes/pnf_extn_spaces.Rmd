@@ -16,7 +16,7 @@ vignette: >
 
 **Long term plan**: Better estimates of bacterial phylogenies, with accurate and clear uncertainty measures. Address this "100% bootstrap support for splits supported by no genes" nonsense. If you don't believe me, here's  Supplementary Data Figure 7 from [our "groves" paper](https://academic.oup.com/biostatistics/article/25/3/786/7332152):
 
-![The Prevotella phylogenomic tree with splits colored by bootstrap support (left) and gene tree support (right). We observe zero gene tree support for several deep splits, but note the high bootstrap support for these splits.](support.png)
+![Caption: The Prevotella phylogenomic tree with splits colored by bootstrap support (left) and gene tree support (right). We observe zero gene tree support for several deep splits, but note the high bootstrap support for these splits.](support.png)
 
 
 **This paper**: A distance between phylogenetic trees with different leaf sets
