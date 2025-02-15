@@ -2,5 +2,6 @@ pandoc: 3.1.11
 pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
+  pnf_extn_spaces: pnf_extn_spaces.html
   practice_blog: practice_blog.html
-last_built: 2025-02-14T19:51Z
+last_built: 2025-02-15T16:36Z

@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A practice blog • blog</title>
+<title>PNF: Extension spaces for phylogenetic trees • blog</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="A practice blog">
+<script src="../pkgdown.js"></script><meta property="og:title" content="PNF: Extension spaces for phylogenetic trees">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -70,21 +70,76 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>A practice blog</h1>
+      <h1 data-toc-skip>PNF: Extension spaces for phylogenetic
+trees</h1>
+                        <h4 data-toc-skip class="author">Amy D
+Willis</h4>
             
+            <h4 data-toc-skip class="date">February 7 2025</h4>
       
 
-      <div class="hidden name"><code>practice_blog.Rmd</code></div>
+      <div class="hidden name"><code>pnf_extn_spaces.Rmd</code></div>
 
     </div>
 
     
     
-<div class="section level2">
-<h2 id="practice">Practice<a class="anchor" aria-label="anchor" href="#practice"></a>
-</h2>
-<p>Here we have text in Markdown! We’ll see how it works.</p>
+<p><a href="https://ieeexplore.ieee.org/abstract/document/10832388" class="external-link">Published
+paper</a> | <a href="https://github.com/statdivlab/ExtnSpaces" class="external-link">Software</a> | <a href="https://github.com/statdivlab/ExtnSpaces_supplementary" class="external-link">Supplementary</a>
+| <a href="https://arxiv.org/abs/2407.00227" class="external-link">Preprint</a></p>
+<p><strong>TL;DR</strong>: The StatDivLab has a big vision to
+revolutionize how you estimate bacterial, archaeal, and interdomain
+phylogenetic trees. This particular method probably won’t be useful to
+you, though. We’re working on something that will be.</p>
+<p><strong>Long term plan</strong>: Better estimates of bacterial
+phylogenies, with accurate and clear uncertainty measures. Address this
+“100% bootstrap support for splits supported by no genes” nonsense. If
+you don’t believe me, here’s Supplementary Data Figure 7 from <a href="https://academic.oup.com/biostatistics/article/25/3/786/7332152" class="external-link">our
+“groves” paper</a>:</p>
+<div class="float">
+<img src="images/support.png" alt="The Prevotella phylogenomic tree with splits colored by bootstrap support (left) and gene tree support (right). We observe zero gene tree support for several deep splits, but note the high bootstrap support for these splits."><div class="figcaption">The Prevotella phylogenomic tree with splits
+colored by bootstrap support (left) and gene tree support (right). We
+observe zero gene tree support for several deep splits, but note the
+high bootstrap support for these splits.</div>
 </div>
+<p><strong>This paper</strong>: A distance between phylogenetic trees
+with different leaf sets</p>
+<p><strong>Why is this important</strong>: Different genes provide
+complementary information about shared ancestry. I believe that while we
+should be selective about what genes we use to estimate phylogenies, we
+shouldn’t be concatenating them together and pretending it’s one
+supergene. Instead, we should estimate gene-level phylogenies and
+combine them cleverly. But, not all genomes will have all core genes
+(e.g., imperfect assemblies, but other reasons too), and we still care
+about those genomes. We therefore have a collection of phylogenetic
+trees to combine… but they don’t have exactly the same leaves. How do
+you compare trees that don’t have the same leaves? I like to compare
+trees that <em>do</em> have the same leaves using the BHV distance.
+That’s why we came up with an algorithm that extends the BHV distance to
+accommodate non-identical leaf sets.</p>
+<p><strong>My favourite things</strong>: Resolves (IMO) the biggest
+limitation of BHV tree space for analyzing bacterial gene trees. Paves
+the way for faster approaches. Creates the first data-analytic tools for
+non-identical leaf-ed trees in BHV space.</p>
+<p><strong>My least favourite thing</strong>: There are so many dang
+tree topologies that it’s not really computationally feasible in
+practice. Also, the geometry of extension spaces means the distance is
+not formally a metric (both positivity and triangle inequality RIP).</p>
+<p><strong>Use cases</strong>: Rather limited. Your typical microbial
+ecologist probably won’t use this. They might use <a href="https://academic.oup.com/biostatistics/article/25/3/786/7332152" class="external-link">this</a>,
+though. Target audience is more likely BHV space supernerds, convex
+optimisation nerds, phylogenetic tree distance afficionados.</p>
+<p><strong>Top shoutouts</strong>: We leaned heavily on <a href="https://epubs.siam.org/doi/10.1137/18M1235855" class="external-link">this</a> work from
+Megan Owen and Gillian Grindstaff. I still love <a href="https://academic.oup.com/biostatistics/article/25/3/786/7332152" class="external-link">this
+paper</a> on tree visualization with Sarah Teichman and Mike Lee.</p>
+<p><strong>Review process</strong>: Amazingly smooth. Sparkly mineral
+water in a desert wasteland. Reviewers were constructive, reasonable and
+fast. I’ll definitely submit to IEEE TCBB again.</p>
+<p><strong>Misc</strong>: Dr Maria Valdez was awarded the School of
+Public Health Outstanding PhD Award for this work. Go Maria! Thoroughly
+well-deserved.</p>
+<p><strong>Wrap-up</strong>: As always, stay tuned! Practical tools for
+bacterial phylogenetics are in the works…</p>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
