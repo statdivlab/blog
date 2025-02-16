@@ -3,5 +3,9 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   pnf_extn_spaces: pnf_extn_spaces.html
-  practice_blog: practice_blog.html
-last_built: 2025-02-15T16:36Z
+  pnf_radEmu: pnf_radEmu.html
+  stamps_2025: stamps_2025.html
+last_built: 2025-02-16T14:58Z
+urls:
+  reference: https://statdivlab.github.io/blog.html/reference
+  article: https://statdivlab.github.io/blog.html/articles
