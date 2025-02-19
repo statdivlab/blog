@@ -12,7 +12,7 @@ vignette: >
 
 [Published paper](https://ieeexplore.ieee.org/abstract/document/10832388) | [Software](https://github.com/statdivlab/ExtnSpaces) | [Supplementary](https://github.com/statdivlab/ExtnSpaces_supplementary) | [Preprint](https://arxiv.org/abs/2407.00227)
 
-**TL;DR**: The StatDivLab has a big vision to revolutionize how you estimate bacterial, archaeal, and interdomain phylogenetic trees. This particular method probably won't be useful to you, though. We're working on something that will be.
+**TL;DR**: The StatDivLab has a big vision to revolutionize how you estimate bacterial, archaeal, and interdomain phylogenetic trees. This paper is our first step in this direction. This method is quite specific, and may not be feasible for your analysis, but it reflects some ideas we're excited about and are advancing further. Stay tuned. 
 
 **Long term plan**: Better estimates of bacterial phylogenies, with accurate and clear uncertainty measures. Address this "100% bootstrap support for splits supported by no genes" nonsense. If you don't believe me, here's  Supplementary Data Figure 7 from [our "groves" paper](https://academic.oup.com/biostatistics/article/25/3/786/7332152):
 
@@ -35,4 +35,4 @@ vignette: >
 
 **Misc**: Dr Maria Valdez was awarded the School of Public Health Outstanding PhD Award for this work. Go Maria! Thoroughly well-deserved.
 
-**Wrap-up**: As always, stay tuned! Practical tools for bacterial phylogenetics are in the works... 
+**Wrap-up**: Stay tuned! Practical tools for bacterial phylogenetics are in the works... 
