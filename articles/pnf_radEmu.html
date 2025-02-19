@@ -123,11 +123,15 @@ average is <em>A. bacterium</em> in site A than site B?” can’t be
 answered from HTS data under reasonable assumptions (like “<a href="https://elifesciences.org/articles/46923" class="external-link">some taxa are
 consistently over-detected</a>”). This isn’t a radEmu problem – it’s a
 mathematical fact about our data. I want to strongly emphasise that
-ALDEx2, ANCOM-BC2, etc., all sweep this under the rug and don’t address
-this issue - not to shame them, but to highlight the advantage of going
-the “scientific question -&gt; can we answer it? -&gt; here’s a method”
-approach rather than the “data has feature X -&gt; here’s a method that
-captures feature X”.</p>
+ALDEx2, ANCOM-BC2, etc., do not address this issue. It’s completely
+swept under the rug. I point this out not to shame them, but to
+highlight the advantage of going the “scientific question
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math>
+can we answer it?
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math>
+here’s a method” approach rather than the “data has feature X
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math>
+here’s a method that captures feature X”.</p>
 <p>So, what can we learn from HTS data? Well, we can answer “How much
 more abundant on average is <em>A. bacterium</em> in site A than site B
 compared to <em>A. notherbacterium</em>?” That’s cool, but most people
@@ -140,7 +144,7 @@ is zero, of course! You’re just looking for what’s most different. Think
 of it this way: if a list of fold-changes is 20, 1.2, 1.1, 1.1, 1, 0.9
 and 0.1, you’re probably most interested in the 20x and 0.1x
 fold-changers. 1.1 isn’t <em>no</em> fold change, but compared to 20,
-it’s not that much.</p>
+it’s not that interesting.</p>
 </div>
 <div class="section level2">
 <h2 id="where-do-the-numbers-actually-come-from">Where do the numbers actually come from?<a class="anchor" aria-label="anchor" href="#where-do-the-numbers-actually-come-from"></a>
@@ -148,13 +152,11 @@ it’s not that much.</p>
 <p>At this point, I often hear “Sounds good, so do you just do some
 compositional transformation and t-test?” No. No, we don’t. Instead, we
 set up an optimisation problem that guarantees a good estimate of those
-(centered) fold-changes. So, I can’t given you a one-line closed-form
-expression for it. But, you can sleep soundly knowing that the
-estimate</p>
+(centered) fold-changes. So, I can’t given you a one-line equation for
+it. But, you can sleep soundly knowing that the estimate</p>
 <ul>
-<li>is guaranteed to get more and more right as you get more samples
-(experimental design implication: prioritize more samples over deeper
-sequencing)</li>
+<li>is guaranteed to get more and more right as you get more samples (so
+prioritize more samples over deeper sequencing)</li>
 <li>converges in distribution to something nice = we can give you the
 p-values you probably came for</li>
 <li>doesn’t require you to “deal” with zeroes</li>
@@ -169,23 +171,23 @@ abundance) under clear assumptions (taxa may be overdetected; but
 consistently so)</li>
 </ul>
 <p><em>Aside: Here’s a not-so-fun fact – “intuitive” methods that
-log-transforms pseudocount-modified data are guaranteed to converge to
-the wrong answer (“inconsistency”). It may not be very wrong in
-practice, but it’ll still be wrong. But that’s it’s own blog post for
+log-transform pseudocount-modified data are</em> guaranteed <em>to
+converge to the wrong answer (“inconsistency”). It may not be very wrong
+in practice, but it’ll still be wrong. But that’s another blog post for
 another day…</em></p>
 </div>
 <div class="section level2">
 <h2 id="lions-tigers-zeroes-and-logs">Lions, tigers, zeroes and logs<a class="anchor" aria-label="anchor" href="#lions-tigers-zeroes-and-logs"></a>
 </h2>
 <p>Part of the reason we can side-step “zeroes and logs” is that our
-optimisation problem models log(mean counts), not mean(log counts). As
-the compositional zealots love to remind you, the latter isn’t defined
-if you ever have zeroes. But, then… what does it mean to talk about the
-average of a collection of numbers with a non-zero probability of an
-infinite value? It doesn’t mean anything, in my opinion, which is one
-more reason not to do it that way. Instead, as long as there is a
-positive probability of the species being detected in some environment,
-log(mean counts) is well-defined.</p>
+optimisation problem models log(mean abundance), not mean(log
+abundance). As the compositional zealots love to remind you, the latter
+isn’t defined if you ever have zeroes. But, then… what does it mean to
+talk about the average of a collection of numbers with a non-zero
+probability of an infinite value? It doesn’t mean anything, in my
+opinion, which is one more reason not to do it that way. Instead, as
+long as there is a positive probability of the species being detected in
+<em>some</em> environment, log(mean abundance) is well-defined.</p>
 <p>Oh yeah, and our optimisation problem doesn’t care about counts
 (integers) or coverages (non-negative numbers). It’s all the same to us.
 So, give radEmu your metagenomic data! Nom nom.</p>
@@ -198,31 +200,15 @@ don’t simply do a t-test to give you p-values because it turns out that
 the p-values are too small. We don’t even do a fancy “robust” t-test,
 because they’re still too small. We want you to have the best, most
 perfect p-values possible (and we love these details), so our p-values
-come from robust score tests, which performed beautifully in practice.
-Great work, co-author David!</p>
-<p>[A world where Amy knows how to insert memes. The meme is from
-Christopher Nolan’s first batman movie. Christian Bale: “Am I supposed
-to understand that?” Morgan Freeman: “No, but I want you to know how
-hard it was.”]</p>
-</div>
-<div class="section level2">
-<h2 id="other-fun-facts">Other fun facts<a class="anchor" aria-label="anchor" href="#other-fun-facts"></a>
-</h2>
-<p>If you have a spike-in, great! Use that as your reference group and
-you don’t have to worry about this centering thing.</p>
-<p>Yes, radEmu “can handle” longitudinal data. I put this in quotes
-because it’s a question I get asked a lot, but a vacuous question
-because there are a lot of different things you “can do” with
-longitudinal data. radEmu can probably do what you want. Use the
-<code>cluster</code> argument and check out <a href="https://statdivlab.github.io/radEmu/articles/radEmu_clustered_data.html" class="external-link">this</a>
-tutorial.</p>
+come from robust score tests, which perform just beautifully in
+practice. Great work, co-author David!</p>
 </div>
 <div class="section level2">
 <h2 id="interpreting-the-output">Interpreting the output<a class="anchor" aria-label="anchor" href="#interpreting-the-output"></a>
 </h2>
 <p>Ok, interpreting radEmu output. Why don’t we talk about this more?!
-It is so important. A corncob coefficient estimate of 0.5 means
-something totally different to an ALDEx2 estimate of 0.5, which no one
+It is really very important. A corncob coefficient estimate of 0.5 means
+something totally different to an ALDEx2 estimate of 0.5 – which no one
 seems to talk about! Anyway, here’s how you interpret a radEmu estimate
 of 0.5 when using the default settings:</p>
 <p>“We estimate that <em>A. bacterium</em> is 1.648 times more abundant
@@ -255,6 +241,21 @@ might want our fast approximation method. So, watch this space.
 <code>fastEmu</code> will have a friend here shortly…</p>
 </div>
 <div class="section level2">
+<h2 id="other-fun-facts">Other fun facts<a class="anchor" aria-label="anchor" href="#other-fun-facts"></a>
+</h2>
+<p>If you have a spike-in, great! Use that as your reference group and
+you don’t have to worry about this “compared to typical fold-changes”
+thing. You can just say “We estimate that <em>A. bacterium</em> is 1.648
+times more abundant in [environment A] than in [ environment B ]’s of
+the same temperature and season.”</p>
+<p>Yes, radEmu “can handle” longitudinal data. I put this in quotes
+because it’s a question I get asked a lot, but a vacuous question
+because there are a lot of different things you “can do” with
+longitudinal data. radEmu can probably do what you want. You probably
+want to use the <code>cluster</code> argument, documented <a href="https://statdivlab.github.io/radEmu/articles/radEmu_clustered_data.html" class="external-link">here</a>
+tutorial.</p>
+</div>
+<div class="section level2">
 <h2 id="wrap-up">Wrap-up<a class="anchor" aria-label="anchor" href="#wrap-up"></a>
 </h2>
 <p>I really believe that radEmu is a great way to do differential
@@ -268,8 +269,9 @@ might write another blog post about radEmu if more things come up.</p>
 <strong>d</strong>ata to <strong>e</strong>stimate
 <strong>mu</strong>ltiplicative differences in <strong>ab</strong>solute
 abundances with <strong>p</strong>artially <strong>i</strong>dentified
-<strong>l</strong>og-<strong>l</strong>inear models.” Hope that
-clarifies!</p>
+<strong>l</strong>og-<strong>l</strong>inear models.” Plus, it makes for
+a great logo.</p>
+<p>Thanks for reading!</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
