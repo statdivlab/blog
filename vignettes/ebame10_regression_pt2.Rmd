@@ -1,0 +1,152 @@
+---
+title: "EBAME10: Functional enrichment in R"
+author: "Amy D Willis"
+date: "October 17 2025"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{EBAME10: Pangenomics hypothesis testing in R}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+# Background
+
+First, work through the "EBAME10: Functional enrichment in anvi'o". 
+
+As discussed in lecture, the anvio functional enrichment toolkit is great for quick and simple comparisons. However, should want more details! How much do the odds of detecting a gene differ between the groups? What about when you want to make more complex comparisons? What about if you studied multiple sites longitudinally?
+
+This tutorial walks you through pulling the data out of anvio, into R, and running functional enrichment analyses yourself in R. 
+
+# Setup
+
+Open a terminal wherever you were running Part 1. You're probably in a directory called `Prochlorococcus_31_genomes`. I assume anvio commands can still run. 
+
+Remember that we want to ask "How does the odds that a gene is present differ between high and low light genomes?" To answer this, we need to know which genes were detected in which genomes. So, let's get that info out of anvio and into a format we can load into R.  
+
+Let's make a new directory to keep this info in.  
+
+```
+mkdir genes 
+```
+
+If you've setup your annotation databases correctly, you can pull out the gene annotations and save them in the folder `genes` by copying the following loop into your terminal:
+
+```
+for file in *.db; do
+    base=$(basename "$file" .db)
+    anvi-export-functions -c "$file" -o "genes/${base}.txt"
+done
+```
+
+Ok! Time to open it in R. Open your favourite interactive R editor. Create a variable with the file path where the genomes DBs are. Load in the high/low light data.  
+
+```
+library(tidyverse)
+dir <- "presentations/2510-ebame/Prochlorococcus_31_genomes/"
+meta <- read_tsv(paste0(dir, "layer-additional-data.txt"))
+```
+
+# Asking MV to clean up the mess that is below this :)
+
+load raoBust. You may need to install it if you haven't. 
+
+```
+remotes::install.packages("statdivlab/raoBust")
+library(raoBust)
+```
+
+Generate presence-absence data
+
+```
+what_is_there <- list.files(paste0(dir, "genes"), pattern = "*.txt", full.names = T) %>%
+  lapply(function(f) {
+    read_tsv(f) %>%
+      mutate(sample = str_remove(basename(f), ".txt"))
+  }) %>%
+  bind_rows() %>%
+  filter(source == "COG14_FUNCTION") %>% 
+  select(-source, -`e_value`) %>% 
+  rename(cog_function = `function`) %>% 
+  distinct
+```
+
+Create a look-up table to connect accessions to functions.
+
+```
+cog_fns <- what_is_there %>% 
+  select(accession, cog_function) %>% 
+  distinct
+cog_fns
+```
+
+Now, make the zero rows:
+
+```
+genes_long <- what_is_there %>%
+  mutate(presence = 1) %>%
+  dplyr::select(sample,accession,presence) %>%
+  distinct %>% 
+  pivot_wider(values_from = presence, values_fill = 0, names_from = accession) %>%
+  pivot_longer(!sample,names_to = "cog", values_to = "presence") %>% 
+  inner_join(meta, by = c("sample" = "isolate")) 
+```
+
+Run the model once:
+
+```
+genes_long %>%
+  filter(cog == "COG0592") %>%
+  glm_test(presence ~ light, data = .,
+           family = binomial(link = "logit"))
+
+```
+
+Explain the output. Why does it make sense that the p-value is large?
+
+```
+genes_long %>%
+  filter(cog == "COG0592") %>% 
+  count(presence,light) 
+```
+
+Everyone has this gene! And that makes sense, because...
+
+```
+cog_fns %>%
+  filter(accession == "COG0592") 
+```
+
+Ok, how do we run this at scale?
+
+```
+coefs <- genes_long %>%
+  group_split(cog) %>%
+  head %>% 
+  set_names(map_chr(., ~ unique(.x$cog))) %>%
+  map(~ glm_test(presence ~ light, data = .x, family = binomial(link = "logit"))$coef) %>%
+  imap_dfr(~ as_tibble(.x, rownames = "term") |>
+             mutate(cog = .y),
+           .id = NULL) %>%
+  relocate(cog)
+```
+
+Now, look at the results!
+
+```
+coefs %>%
+  filter(term == "lightLL") %>%
+  select(-`Non-robust Std Error`, -`Non-robust Wald p`, -`Robust Wald p`) %>%
+  arrange(desc(abs(Estimate)))
+
+out %>%
+  filter(term == "lightLL") %>%
+  ggplot(aes(x = Estimate, y = `Robust Std Error`)) +
+  geom_jitter()
+
+out %>%
+  filter(term == "lightLL") %>%
+  count(Estimate) %>%
+  arrange(desc(abs(Estimate)))
+```
+
