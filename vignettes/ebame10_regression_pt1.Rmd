@@ -1,0 +1,140 @@
+---
+title: "EBAME10: Functional enrichment in anvi'o"
+author: "Amy D Willis"
+date: "October 17 2025"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{EBAME10: Pangenomics hypothesis testing in anvi'o}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+# Background
+
+This lab covers "functional enrichment" in anvi'o, in its simplest form. 
+
+The main learning objective is for you to deepen your understanding of regression models as tools to answer questions about your metagenomics data. See the [lecture slides](https://github.com/statdivlab/presentations/blob/main/ebame10/2-regression.pdf). 
+
+Functional enrichment is an example of estimating comparative parameters in metagenomics, so it gives us the chance to illustrate some concepts from lecture. 
+
+Functional enrichment fits broadly into the paradigm of pangenomics. If you want to learn about the amazing pangenomics tools in anvi'o, check out the tutorials at [anvi'o.org/learn/](https://anvi'o.org/learn/). 
+
+# Setup
+
+Navigate to wherever you have been running anvi'o the last few days. Activate your anvi'o conda environment if needed. Confirm anvi'o commands run (e.g., `anvi-migrate -h`). If they don't, fix it. These commands work on anvi'o `v8` (or `dev` as of October 2025). 
+
+We're going to work with data from the amazing (now a little outdated) pangenomics in anvi'o tutorial available [here](https://merenlab.org/2016/11/08/pangenomics-v2/). 
+
+Download the zipped data, unzip it, and move into that directory.
+
+```
+wget https://ndownloader.figshare.com/files/28834476 -O Prochlorococcus_31_genomes.tar.gz
+tar -zxvf Prochlorococcus_31_genomes.tar.gz
+cd Prochlorococcus_31_genomes
+```
+
+Here we have some Prochlorococcus genomes in contigs DBs. How many genomes are there?
+
+```
+ls *.db | wc -l 
+```
+
+Each was recovered from either a high-light ocean sample, or a low-light ocean sample. You can read about them in way more detail in the tutorial linked above.
+
+We want to identify which COGs were present more often in one type of genomes. As discussed in the lecture, this is equivalent to asking whether the odds of detecting a COG in a genome differs based on where the genome was recovered from. 
+
+We actually don't need to build a pangenome to answer this question*. All we need is
+
+1. A list of the genomes that we want to include in the analysis. Here, we're going to use the external genomes file `external-genomes.txt`. (Check it out its format with `head external-genomes.txt`.)
+2. The name of the file we want to save the results. I'm going to call it `enrichment-output.txt`. 
+3. The annotation source. I'm going to choose `COG14_FUNCTION`. 
+4. The groups we want to compare across. This info is contained in `layer-additional-data.txt`. 
+
+*You could, of course! It allows you to do lots of interesting things! It can take a while, though. The approach presented here is faster. 
+
+# Attempting to run `anvi-compute-functional-enrichment-across-genomes`
+
+One of the many cool things about anvi'o is that it's hard to break stuff. So, as a general rule, I try things until my wish comes true. Often, the help messages are enough to get me there. Let's see if they are enough today! 
+
+```
+anvi-compute-functional-enrichment-across-genomes -e external-genomes.txt -o enrichment-output.txt --annotation-source COG14_FUNCTION 
+```
+
+"error: the following arguments are required: -G/--groups-txt". Ok, fine. That info is in `layer-additional-data.txt`:
+
+```
+head layer-additional-data.txt
+```
+
+Ok, maybe this will work?
+
+```
+anvi-compute-functional-enrichment-across-genomes -e external-genomes.txt -o enrichment-output.txt --annotation-source COG14_FUNCTION -G layer-additional-data.txt
+```
+
+"Config Error: A groups-txt file should have a column that is called `group`."
+
+Ok, cool! `layer-additional-data.txt` has what we need, but not in a column called group. 
+
+I hate remembering stuff, so of course, I asked my bff ChatGPT. 
+
+
+```
+I have a file called layer-additional-data.txt. here's what it looks like 
+
+head layer-additional-data.txt
+isolate	clade	light
+AS9601	HL_II	HL
+CCMP1375	LL_II	LL
+EQPAC1	HL_I	HL
+GP2	HL_II	HL
+LG	LL_II	LL
+MED4	HL_I	HL
+MIT9107	HL_II	HL
+MIT9116	HL_II	HL
+MIT9123	HL_II	HL
+
+I want to copy the column light and call it group. give me a cmd line one-liner thx
+```
+
+(You don't have to say thanks, but maybe we'll be less likely to turn into paperclips)
+
+```
+awk 'BEGIN{OFS="\t"} NR==1{$(NF+1)="group"} NR>1{$(NF+1)=$3}1' layer-additional-data.txt > layer-additional-data-with-group.txt\n
+```
+
+Ok! Let's try again!
+
+```
+anvi-compute-functional-enrichment-across-genomes -e external-genomes.txt -o enrichment-output.txt --annotation-source COG14_FUNCTION -G layer-additional-data-with-group.txt
+``` 
+
+"Config Error: The database at 'Prochlorococcus_31_genomes/AS9601.db' is outdated (this database is v20 and your anvi'o installation wants to work with v24). You can migrate your database without losing any data using the program `anvi-migrate` with either of the     flags `--migrate-safely` or `--migrate-quickly`."
+
+Ok, so...
+
+```
+anvi-migrate *.db --migrate-safely
+```
+
+And now...
+
+```
+anvi-compute-functional-enrichment-across-genomes -e external-genomes.txt -o enrichment-output.txt --annotation-source COG14_FUNCTION -G layer-additional-data-with-group.txt
+```
+
+Hooray!!! Now let's open up `enrichment-output.txt` and talk about it. 
+
+# Can I just have the answer?
+
+Ok :')
+
+```
+wget https://ndownloader.figshare.com/files/28834476 -O Prochlorococcus_31_genomes.tar.gz
+tar -zxvf Prochlorococcus_31_genomes.tar.gz
+cd Prochlorococcus_31_genomes
+awk 'BEGIN{OFS="\t"} NR==1{$(NF+1)="group"} NR>1{$(NF+1)=$3}1' layer-additional-data.txt > layer-additional-data-with-group.txt\n
+anvi-migrate *.db --migrate-safely
+anvi-compute-functional-enrichment-across-genomes -e external-genomes.txt -o enrichment-output.txt --annotation-source COG14_FUNCTION -G layer-additional-data-with-group.txt
+```
