@@ -3,10 +3,11 @@ pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   ebame10_regression_pt1: ebame10_regression_pt1.html
+  ebame10_regression_pt2: ebame10_regression_pt2.html
   pnf_extn_spaces: pnf_extn_spaces.html
   pnf_radEmu: pnf_radEmu.html
   stamps_2025: stamps_2025.html
-last_built: 2025-10-15T08:13Z
+last_built: 2025-10-15T10:05Z
 urls:
   reference: https://statdivlab.github.io/blog.html/reference
   article: https://statdivlab.github.io/blog.html/articles
