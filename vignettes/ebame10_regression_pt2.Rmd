@@ -40,7 +40,7 @@ done
 ```
 
 
-Ok! Time to open it in R. Open your favourite interactive R editor (and set the working directory to ...). Create a variable with the file path where the genomes DBs are (if you already forgot, you can find it with `echo "$PWD"`). Load in the high/low light data.  
+Ok! Time to open it in R. Open your favourite interactive R editor and create a variable with the file path where the genomes DBs are (if you already forgot, you can find it with `echo "$PWD"`). Load in the high/low light data.  
 
 
 ```
@@ -138,8 +138,7 @@ genes_long %>%
            family = binomial(link = "logit"))
 ```
 
-What do we observe in the output? 
-Explain the output. Why does it make sense that the p-value is large?
+What do we observe in the output? Why does it make sense that the p-value is large?
 
 ```
 genes_long %>%
@@ -154,12 +153,14 @@ cog_fns %>%
   filter(accession == "COG0592") 
 ```
 
-Ok, how do we run this at scale?
+Ok, how do we run this at scale? 
+
+For this we can create a table for each gene (using `group_split` based in the column cog),
+and running the model above for each. This may take a few minutes! 
 
 ```
 coefs <- genes_long %>%
   group_split(cog) %>%
-  head %>% 
   set_names(map_chr(., ~ unique(.x$cog))) %>%
   map(~ glm_test(presence ~ light, data = .x, family = binomial(link = "logit"))$coef) %>%
   imap_dfr(~ as_tibble(.x, rownames = "term") |>
@@ -168,20 +169,24 @@ coefs <- genes_long %>%
   relocate(cog)
 ```
 
-Now, look at the results!
+Now, look at the results! We can do this in several ways like: 
+
+1. Directly looking at the estimated numbers! 
+2. Plotting the estimated difference in odds, along with the robust standard error.
+3. We can order the estimated coefficients from those indicating higher differences overall (some repetitions in our estimates happened. Why could this be?)
 
 ```
 coefs %>%
   filter(term == "lightLL") %>%
-  select(-`Non-robust Std Error`, -`Non-robust Wald p`, -`Robust Wald p`) %>%
+  dplyr::select(-`Non-robust Std Error`, -`Non-robust Wald p`, -`Robust Wald p`) %>%
   arrange(desc(abs(Estimate)))
-
-out %>%
+  
+coefs %>%
   filter(term == "lightLL") %>%
   ggplot(aes(x = Estimate, y = `Robust Std Error`)) +
   geom_jitter()
 
-out %>%
+coefs %>%
   filter(term == "lightLL") %>%
   count(Estimate) %>%
   arrange(desc(abs(Estimate)))
