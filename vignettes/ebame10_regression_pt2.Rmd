@@ -30,7 +30,7 @@ Let's make a new directory to keep this info in.
 mkdir genes 
 ```
 
-If you've setup your annotation databases correctly, you can pull out the gene annotations and save them in the folder `genes` by copying the following loop into your terminal:
+If you've setup your annotation databases correctly, you can pull out the gene annotations and save them in the folder `genes` by copying the following loop into your terminal (may take a few minutes, so continue with setting R in the mean time):
 
 ```
 for file in *.db; do
@@ -39,24 +39,32 @@ for file in *.db; do
 done
 ```
 
-Ok! Time to open it in R. Open your favourite interactive R editor. Create a variable with the file path where the genomes DBs are. Load in the high/low light data.  
+
+Ok! Time to open it in R. Open your favourite interactive R editor (and set the working directory to ...). Create a variable with the file path where the genomes DBs are (if you already forgot, you can find it with `echo "$PWD"`). Load in the high/low light data.  
+
 
 ```
 library(tidyverse)
+
+#Change the following dir with what you obtain with echo above.
+
 dir <- "presentations/2510-ebame/Prochlorococcus_31_genomes/"
 meta <- read_tsv(paste0(dir, "layer-additional-data.txt"))
 ```
 
+Note: If you get the message `Error: '/.../...layer-additional-data.txt' does not exist.`, double-check you replaced the directory address correctly.
+
 # Asking MV to clean up the mess that is below this :)
 
-load raoBust. You may need to install it if you haven't. 
+Our first step is to extract and format our data to something R likes. We will do this in a few steps.
 
-```
-remotes::install.packages("statdivlab/raoBust")
-library(raoBust)
-```
-
-Generate presence-absence data
+In the following code we:
+1. List all files in the genes folder (extracted from anvi'o above) with `list.files`, and for each file, we read as a table (with `read_tsv`) and added a column named "sample" with the name of the source file (with `mutate`)
+2. Joined all these tables by their rows with `bind_rows()`
+3. Kept only those whose annotation source equals `COG14_FUNCTION` with `filter`
+4. Remove the not-longer-needed columns "source" and "e-value" with `select`
+5. Change the name of the column "function" with "cog_function" with `rename``
+6. Made sure there are not identical rows using `distinct` (repeated rows would have been deleted)
 
 ```
 what_is_there <- list.files(paste0(dir, "genes"), pattern = "*.txt", full.names = T) %>%
@@ -66,21 +74,34 @@ what_is_there <- list.files(paste0(dir, "genes"), pattern = "*.txt", full.names 
   }) %>%
   bind_rows() %>%
   filter(source == "COG14_FUNCTION") %>% 
-  select(-source, -`e_value`) %>% 
+  dplyr::select(-source, -`e_value`) %>% 
   rename(cog_function = `function`) %>% 
   distinct
 ```
 
-Create a look-up table to connect accessions to functions.
+"what_is_there" is now a table listing all genes found in each of the sample genomes, along with their accession code and the functions annotated to them by COG14_function. 
+
+Now, we will create a look-up table to connect accessions to functions.
 
 ```
 cog_fns <- what_is_there %>% 
-  select(accession, cog_function) %>% 
+  dplyr::select(accession, cog_function) %>% 
   distinct
 cog_fns
 ```
 
-Now, make the zero rows:
+How many distinct accession-function combinations we obtained? `dim(cog_fns)`
+
+Now, we finish by constructing the table of gene presence/absence with a useful format for the regression model we will fit later. 
+
+In the following code we construct our table "genes_long" from "what_is_there" by:
+1. Add a column called "presence" full of 1's with `mutate` (this eventually will indicate the gene in that row is present in the sample on the same row)
+2. Removing not-longer-useful columns and keeping only "sample", "accession" and "presence" with `select`
+3. Remove repeated rows with `distinct`
+4. Change the format of the table from long to wide, using "sample" as the name of the rows, "accession" as the name of the columns and filling up the table with "presence" with `pivot_longer`. Note that `values_fill = 0` indicates that whenever a combination of "sample"-"accession" was not a part of the table (ie we are missing the value 1 in presence), to fill it up with 0. As a result, missing genes in samples will have presence 0, while present genes will have presence 1. 
+5. Return to the long format with `pivot_longer`, keeping all the zeros filled up in the previous step. 
+6. We add covariate information contained in the table "meta", adding the columns "clade" and "light" with `inner_join`.
+
 
 ```
 genes_long <- what_is_there %>%
@@ -92,16 +113,30 @@ genes_long <- what_is_there %>%
   inner_join(meta, by = c("sample" = "isolate")) 
 ```
 
-Run the model once:
+"genes_long" is now a table that contains a list of all the samples and all the genes, with a 1 in "presence" if the gene is in the sample, and 0 if it is missing, and with information on the sample by having "clade" and "light". 
+
+We are ready for some modeling!! 
+
+We will be employing the library raoBust, which implements generalized linear models, along with robust score test. You may need to install it if you haven't. 
+
+```
+remotes::install_github("statdivlab/raoBust")
+
+library(raoBust)
+```
+
+Let's start with a small case. How can we learn if there is any difference in the odds of the gene with accession "COG0592" being present between samples with high or low light? 
+
+The following code fits a model to estimate that very difference.
 
 ```
 genes_long %>%
   filter(cog == "COG0592") %>%
   glm_test(presence ~ light, data = .,
            family = binomial(link = "logit"))
-
 ```
 
+What do we observe in the output? 
 Explain the output. Why does it make sense that the p-value is large?
 
 ```
