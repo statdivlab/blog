@@ -59,12 +59,13 @@ Note: If you get the message `Error: '/.../...layer-additional-data.txt' does no
 Our first step is to extract and format our data to something R likes. We will do this in a few steps.
 
 In the following code we:
-1. List all files in the genes folder (extracted from anvi'o above) with `list.files`, and for each file, we read as a table (with `read_tsv`) and added a column named "sample" with the name of the source file (with `mutate`)
-2. Joined all these tables by their rows with `bind_rows()`
-3. Kept only those whose annotation source equals `COG14_FUNCTION` with `filter`
-4. Remove the not-longer-needed columns "source" and "e-value" with `select`
-5. Change the name of the column "function" with "cog_function" with `rename``
-6. Made sure there are not identical rows using `distinct` (repeated rows would have been deleted)
+
+1. List all files in the genes folder (extracted from anvi'o above) with `list.files`, and for each file, we read as a table (with `read_tsv`) and added a column named "sample" with the name of the source file (with `mutate`).
+2. Joined all these tables by their rows with `bind_rows()`.
+3. Kept only those whose annotation source equals `COG14_FUNCTION` with `filter`.
+4. Remove the not-longer-needed columns "source" and "e-value" with `select`.
+5. Change the name of the column "function" with "cog_function" with `rename``.
+6. Made sure there are not identical rows using `distinct` (repeated rows would have been deleted).
 
 ```
 what_is_there <- list.files(paste0(dir, "genes"), pattern = "*.txt", full.names = T) %>%
@@ -95,6 +96,7 @@ How many distinct accession-function combinations we obtained? `dim(cog_fns)`
 Now, we finish by constructing the table of gene presence/absence with a useful format for the regression model we will fit later. 
 
 In the following code we construct our table "genes_long" from "what_is_there" by:
+
 1. Add a column called "presence" full of 1's with `mutate` (this eventually will indicate the gene in that row is present in the sample on the same row)
 2. Removing not-longer-useful columns and keeping only "sample", "accession" and "presence" with `select`
 3. Remove repeated rows with `distinct`

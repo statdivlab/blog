@@ -130,18 +130,23 @@ double-check you replaced the directory address correctly.</p>
 </h2>
 <p>Our first step is to extract and format our data to something R
 likes. We will do this in a few steps.</p>
-<p>In the following code we: 1. List all files in the genes folder
-(extracted from anvi’o above) with <code>list.files</code>, and for each
-file, we read as a table (with <code>read_tsv</code>) and added a column
-named “sample” with the name of the source file (with
-<code>mutate</code>) 2. Joined all these tables by their rows with
-<code>bind_rows()</code> 3. Kept only those whose annotation source
-equals <code>COG14_FUNCTION</code> with <code>filter</code> 4. Remove
-the not-longer-needed columns “source” and “e-value” with
-<code>select</code> 5. Change the name of the column “function” with
-“cog_function” with
-<code>rename`` 6. Made sure there are not identical rows using</code>distinct`
-(repeated rows would have been deleted)</p>
+<p>In the following code we:</p>
+<ol style="list-style-type: decimal">
+<li>List all files in the genes folder (extracted from anvi’o above)
+with <code>list.files</code>, and for each file, we read as a table
+(with <code>read_tsv</code>) and added a column named “sample” with the
+name of the source file (with <code>mutate</code>).</li>
+<li>Joined all these tables by their rows with
+<code><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows()</a></code>.</li>
+<li>Kept only those whose annotation source equals
+<code>COG14_FUNCTION</code> with <code>filter</code>.</li>
+<li>Remove the not-longer-needed columns “source” and “e-value” with
+<code>select</code>.</li>
+<li>Change the name of the column “function” with “cog_function” with
+`rename``.</li>
+<li>Made sure there are not identical rows using <code>distinct</code>
+(repeated rows would have been deleted).</li>
+</ol>
 <pre><code><span><span class="va">what_is_there</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dir</span>, <span class="st">"genes"</span><span class="op">)</span>, pattern <span class="op">=</span> <span class="st">"*.txt"</span>, full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html" class="external-link">read_tsv</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -166,22 +171,29 @@ functions.</p>
 <p>Now, we finish by constructing the table of gene presence/absence
 with a useful format for the regression model we will fit later.</p>
 <p>In the following code we construct our table “genes_long” from
-“what_is_there” by: 1. Add a column called “presence” full of 1’s with
-<code>mutate</code> (this eventually will indicate the gene in that row
-is present in the sample on the same row) 2. Removing not-longer-useful
-columns and keeping only “sample”, “accession” and “presence” with
-<code>select</code> 3. Remove repeated rows with <code>distinct</code>
-4. Change the format of the table from long to wide, using “sample” as
+“what_is_there” by:</p>
+<ol style="list-style-type: decimal">
+<li>Add a column called “presence” full of 1’s with <code>mutate</code>
+(this eventually will indicate the gene in that row is present in the
+sample on the same row)</li>
+<li>Removing not-longer-useful columns and keeping only “sample”,
+“accession” and “presence” with <code>select</code>
+</li>
+<li>Remove repeated rows with <code>distinct</code>
+</li>
+<li>Change the format of the table from long to wide, using “sample” as
 the name of the rows, “accession” as the name of the columns and filling
 up the table with “presence” with <code>pivot_longer</code>. Note that
 <code>values_fill = 0</code> indicates that whenever a combination of
 “sample”-“accession” was not a part of the table (ie we are missing the
 value 1 in presence), to fill it up with 0. As a result, missing genes
 in samples will have presence 0, while present genes will have presence
-1. 5. Return to the long format with <code>pivot_longer</code>, keeping
-all the zeros filled up in the previous step. 6. We add covariate
-information contained in the table “meta”, adding the columns “clade”
-and “light” with <code>inner_join</code>.</p>
+1.</li>
+<li>Return to the long format with <code>pivot_longer</code>, keeping
+all the zeros filled up in the previous step.</li>
+<li>We add covariate information contained in the table “meta”, adding
+the columns “clade” and “light” with <code>inner_join</code>.</li>
+</ol>
 <pre><code><span><span class="va">genes_long</span> <span class="op">&lt;-</span> <span class="va">what_is_there</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>presence <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">sample</span>,<span class="va">accession</span>,<span class="va">presence</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
