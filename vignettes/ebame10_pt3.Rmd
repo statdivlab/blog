@@ -11,21 +11,19 @@ vignette: >
 
 # Background
 
-This lab covers "differential abundance" using metagenomics data, emphasizing using the outputs of anvi'o's `anvi-estimate-scg-taxonomy` function. 
-(You could also use the output of `anvi-profile-blitz`.)
+This lab covers "differential abundance" using metagenomics data, emphasizing using the outputs of anvi'o's `anvi-estimate-scg-taxonomy` function. You could probably adapt it to work with `anvi-profile-blitz`... let us know if you want that!
 
-It specifically covers the differential abundance method `radEmu`. We like these methods because radEmu estimates changes in the "absolute abundance" of microbial taxa, even without absolute quantification data. Here, "absolute abundance" could be interpreted on the cell count, cell concentration or DNA concentration scale. Yes! It’s true! (We talked about this in lecture.)
+It specifically covers the differential abundance method `radEmu`. We like this method because it estimates changes in the "absolute abundance" of microbial taxa, even without absolute quantification data. Here, "absolute abundance" could be interpreted on the cell count, cell concentration or DNA concentration scale. Yes! It’s true! (We talked about this in lecture.)
 
-We'll illustrate its use on the the Healthy Dairy Workers dataset. We're interested in estimating fold-changes in microbial abundances before compared to after commencing dairy work. 
+We'll illustrate its use on the the Healthy Dairy Workers dataset. We're interested in estimating changes in microbial abundances *before* versus *after* commencing dairy work.
 
-First let's load libraries we'll need. 
+First let's load libraries we'll need. Install radEmu only if you don't already have it installed. 
 
-```{r, include=FALSE}
+```{r, message=FALSE}
 library(tidyverse)
-# install radEmu (only if you don't already have it installed)
-if (!("radEmu" %in% row.names(installed.packages()))) {
-  remotes::install_github("statdivlab/radEmu")
-}
+# if (!("radEmu" %in% row.names(installed.packages()))) {
+#   remotes::install_github("statdivlab/radEmu")
+# }
 library(radEmu)
 ```
 
@@ -38,7 +36,7 @@ The metadata is from SRA. Let's read it in, and remove all columns that are iden
 meta <- read.table("../data/hdw_metadata.tsv", header = TRUE, row.names = 1) %>% 
   as_tibble %>% 
   dplyr::select(where(~ n_distinct(.) > 1))
-meta
+head(meta)
 ```
 
 We can see the study collected samples at different points in time (`collection_date`) from different hosts (`host_subject_id`). How many hosts do we have? And how many visits per host?
@@ -67,7 +65,7 @@ To run `radEmu`, we need a table with samples in the rows, taxa in the columns, 
 Here's how you can do that (you can go through this slowly in your own time, and adapt it to your own data). We remove some negative control data; it's not useful for us here. 
 
 ```{r, message=FALSE}
-coverages <- list.files("../data/11_MGX_TAXONOMY/",pattern = "^S.*txt", full.names = T) %>% 
+coverages_all <- list.files("../data/11_MGX_TAXONOMY/",pattern = "^S.*txt", full.names = T) %>% 
   lapply(FUN = read_tsv) %>% 
   bind_rows() %>%
   separate(scg_name, sep = "_", into = c("sample_profile_db", NA, "marker", "strain")) %>% 
@@ -83,8 +81,11 @@ coverages <- list.files("../data/11_MGX_TAXONOMY/",pattern = "^S.*txt", full.nam
   mutate(taxa = paste0("d__", t_domain, ";p__", t_phylum, 
                        ";c__", t_class, ";o__",t_order,";f__",t_family,
                        ";g__", t_genus, ";s__",t_species)) %>% 
-  dplyr::select(-t_domain, -t_phylum, -t_class, -t_order, -t_family, -t_genus, -t_species) %>%
-  pivot_wider(values_from = coverage, values_fill = 0, names_from = taxa) %>%
+  mutate(sp_name = ifelse(t_species == "None", taxa, t_species) %>% str_replace(" ", "_"))
+
+coverages <- coverages_all %>% 
+  dplyr::select(sample, coverage, sp_name) %>%
+  pivot_wider(values_from = coverage, values_fill = 0, names_from = sp_name) %>%
   column_to_rownames(var="sample") 
 ```
 
@@ -104,9 +105,7 @@ meta$sample_id
 To keep things simple, if there are technical replicates, we will retain only one. For this, we will remove all samples labelled with a "B" at the end.
 
 ```{r}
-coverages <- coverages %>%
-  filter(!endsWith(rownames(coverages),"B"))
-
+coverages <- coverages[!endsWith(rownames(coverages), "B"), ]
 meta <- meta %>%
   filter(!endsWith(sample_id,"B"))
 ```
@@ -222,6 +221,8 @@ Here we can see the distribution of log fold-difference estimates from our model
 A quick check...
 
 ```{r}
+max(hdw_fit$coef$estimate)
+exp(max(hdw_fit$coef$estimate))
 largest_diff <- hdw_fit$coef %>% 
   tibble %>% 
   filter(abs(estimate) == max(abs(estimate))) %>% 
@@ -275,7 +276,7 @@ hdw_fit$coef[taxa_to_test, ]
 
 We do not have strong statistical evidence to conclude the fold-difference in abundance of these two taxa before and after exposure is any different than the typical fold-difference. Here's an example interpretation appropriate for a paper
 
-We estimate that the average abundance of `r hdw_fit$coef[taxa_to_test[1], "category"] %>% sub(".*s__", "", .)` in metagenomes is `r 1/(hdw_fit$coef[taxa_to_test[1], "estimate"] %>% exp %>% signif(2))` times greater *before* commencing dairy work, when compared to the typical fold-differences in the average abundance of taxa across these visits (95% CI `r 1/(hdw_fit$coef[taxa_to_test[1], "upper"] %>% exp %>% signif(2))`--`r 1/(hdw_fit$coef[taxa_to_test[1], "lower"] %>% exp %>% signif(2))`). 
+We estimate that the average abundance of `r hdw_fit$coef[taxa_to_test[1], "category"] %>% sub(".*s__", "", .)` in metagenomes is `r signif(1/(hdw_fit$coef[taxa_to_test[1], "estimate"] %>% exp), 2)` times greater *before* commencing dairy work, when compared to the typical fold-differences in the average abundance of taxa across these visits (95% CI `r signif(1/(hdw_fit$coef[taxa_to_test[1], "upper"] %>% exp), 2)`--`r signif(1/(hdw_fit$coef[taxa_to_test[1], "lower"] %>% exp), 2)`). 
 
 In many data analyses, we'd like to run reliable tests for all taxa that we have measured. We could run robust score tests for every taxon in this analysis, but it will take a long time to run all tests serially. They can easily be run in parallel on a computing cluster (for example, if you are in a VM!). 
 
@@ -291,12 +292,12 @@ emuTest <- function(category) {
                        cluster = meta$host_subject_id,
                        test_kj = data.frame(k = covariate_to_test, 
                                             j = category), 
-                       Y = mOTU)
+                       Y = coverages)
   return(score_res)
 }
 if (.Platform$OS.type != "windows" & !identical(Sys.getenv("GITHUB_ACTIONS"), "true")) {
   # run if we are on a Mac or Linux machine
-  score_res <- parallel::mclapply(1:5,
+  score_res <- parallel::mclapply(1:ncol(coverages),
                       emuTest,
                       mc.cores = ncores)
 } else {
@@ -315,14 +316,13 @@ if (!is.null(score_res)) {
                        function(x) score_res[[x]]$coef$score_stat[x])
   full_pval <- sapply(1:length(score_res), 
                       function(x) score_res[[x]]$coef$pval[x])
-  full_coef <- ch_fit$coef %>%
+  full_coef <- hdw_fit$coef %>%
     dplyr::select(-score_stat, -pval) %>%
-    filter(category_num %in% 1:5) %>%
+    filter(category_num %in% 1:ncol(coverages)) %>%
     mutate(score_stat = full_score,
            pval = full_pval)
   full_coef
 }
-
 ```
 
 By the way -- running this many tests is quite reasonable, but the computation time increases as the number of predictors and number of taxa increases. When you need it, the package `fastEmu` will be ready for you <3 We recommend using `fastEmu` over `radEmu` when running differential abundance analyses for very large data sets. That said, you do need to choose a reference set to use `fastEmu`, which makes the interpretation of parameter estimates less intuitive than for `radEmu`. If you find that `radEmu` is taking too long for your differential abundance analysis, consider trying `fastEmu`!  
@@ -330,7 +330,7 @@ By the way -- running this many tests is quite reasonable, but the computation t
 
 ## Conclusions 
 
-`radEmu` isn't the only differential abundance method. Some other popular alternatives include `ALDEx2`, `ANCOM-BC2`, and `DESeq2`. Each of these methods (and the many differential abundance methods that we didn't consider here) have pros and cons. Here's a list of our opinions on these methods. This is data driven, but definitely reflects our bias. 
+`radEmu` isn't the only differential abundance method. Some other popular alternatives include `ALDEx2`, `ANCOM-BC2`, and `DESeq2`. Each of these methods (and the many differential abundance methods that we didn't consider here) have pros and cons. Here's a list of our opinions on these methods. **These critiques are data-driven, but definitely reflect our bias.** 
 
 - `radEmu`
   - pros: low bias, has Type I error rate control in all settings that we tested, handles sparsity well

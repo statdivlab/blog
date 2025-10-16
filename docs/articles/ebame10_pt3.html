@@ -84,50 +84,53 @@ Amy Willis</h4>
 </h2>
 <p>This lab covers “differential abundance” using metagenomics data,
 emphasizing using the outputs of anvi’o’s
-<code>anvi-estimate-scg-taxonomy</code> function. (You could also use
-the output of <code>anvi-profile-blitz</code>.)</p>
+<code>anvi-estimate-scg-taxonomy</code> function. You could probably
+adapt it to work with <code>anvi-profile-blitz</code>… let us know if
+you want that!</p>
 <p>It specifically covers the differential abundance method
-<code>radEmu</code>. We like these methods because radEmu estimates
-changes in the “absolute abundance” of microbial taxa, even without
-absolute quantification data. Here, “absolute abundance” could be
-interpreted on the cell count, cell concentration or DNA concentration
-scale. Yes! It’s true! (We talked about this in lecture.)</p>
+<code>radEmu</code>. We like this method because it estimates changes in
+the “absolute abundance” of microbial taxa, even without absolute
+quantification data. Here, “absolute abundance” could be interpreted on
+the cell count, cell concentration or DNA concentration scale. Yes! It’s
+true! (We talked about this in lecture.)</p>
 <p>We’ll illustrate its use on the the Healthy Dairy Workers dataset.
-We’re interested in estimating fold-changes in microbial abundances
-before compared to after commencing dairy work.</p>
-<p>First let’s load libraries we’ll need.</p>
+We’re interested in estimating changes in microbial abundances
+<em>before</em> versus <em>after</em> commencing dairy work.</p>
+<p>First let’s load libraries we’ll need. Install radEmu only if you
+don’t already have it installed.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
+<span><span class="co"># if (!("radEmu" %in% row.names(installed.packages()))) {</span></span>
+<span><span class="co">#   remotes::install_github("statdivlab/radEmu")</span></span>
+<span><span class="co"># }</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/statdivlab/radEmu" class="external-link">radEmu</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="loading-metadata">Loading metadata<a class="anchor" aria-label="anchor" href="#loading-metadata"></a>
 </h2>
 <p>The metadata is from SRA. Let’s read it in, and remove all columns
 that are identical for all samples.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span><span class="st">"../data/hdw_metadata.tsv"</span>, header <span class="op">=</span> <span class="cn">TRUE</span>, row.names <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="va">as_tibble</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="fu">where</span><span class="op">(</span><span class="op">~</span> <span class="fu">n_distinct</span><span class="op">(</span><span class="va">.</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">meta</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 35 × 4</span></span></span>
-<span><span class="co">##    sample_id host_subject_id collection_date replicate.number</span></span>
-<span><span class="co">##    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 1</span> S200_V00  S200            2018-03-15                     1</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 2</span> S200_V11  S200            2018-06-25                     1</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 3</span> S200_V22  S200            2018-10-11                     1</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 4</span> S200_V33  S200            2019-03-10                     1</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 5</span> S200_V44  S200            2020-11-09                     1</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 6</span> S201_V00  S201            2018-06-19                     1</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 7</span> S201_V11  S201            2018-10-05                     1</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 8</span> S201_V22  S201            2019-01-04                     1</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 9</span> S201_V33  S201            2019-07-31                     1</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">10</span> S201_V44  S201            2020-11-16                     1</span></span>
-<span><span class="co">## <span style="color: #949494;"># ℹ 25 more rows</span></span></span></code></pre>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span><span class="st">"../data/hdw_metadata.tsv"</span>, header <span class="op">=</span> <span class="cn">TRUE</span>, row.names <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="va">as_tibble</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/where.html" class="external-link">where</a></span><span class="op">(</span><span class="op">~</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/n_distinct.html" class="external-link">n_distinct</a></span><span class="op">(</span><span class="va">.</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">meta</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 4</span></span></span>
+<span><span class="co">##   sample_id host_subject_id collection_date replicate.number</span></span>
+<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> S200_V00  S200            2018-03-15                     1</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> S200_V11  S200            2018-06-25                     1</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span> S200_V22  S200            2018-10-11                     1</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span> S200_V33  S200            2019-03-10                     1</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">5</span> S200_V44  S200            2020-11-09                     1</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">6</span> S201_V00  S201            2018-06-19                     1</span></span></code></pre>
 <p>We can see the study collected samples at different points in time
 (<code>collection_date</code>) from different hosts
 (<code>host_subject_id</code>). How many hosts do we have? And how many
 visits per host?</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">meta</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">count</span><span class="op">(</span><span class="va">host_subject_id</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">meta</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">host_subject_id</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 9 × 2</span></span></span>
 <span><span class="co">##   host_subject_id     n</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
@@ -165,33 +168,36 @@ coverage of different strains within the same species).</p>
 <p>Here’s how you can do that (you can go through this slowly in your
 own time, and adapt it to your own data). We remove some negative
 control data; it’s not useful for us here.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">coverages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="st">"../data/11_MGX_TAXONOMY/"</span>,pattern <span class="op">=</span> <span class="st">"^S.*txt"</span>, full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span>FUN <span class="op">=</span> <span class="va">read_tsv</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">bind_rows</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">separate</span><span class="op">(</span><span class="va">scg_name</span>, sep <span class="op">=</span> <span class="st">"_"</span>, into <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sample_profile_db"</span>, <span class="cn">NA</span>, <span class="st">"marker"</span>, <span class="st">"strain"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">percent_identity</span>, <span class="op">-</span><span class="va">marker</span>, <span class="op">-</span><span class="va">strain</span>, <span class="op">-</span><span class="va">NEG_UWTrinh_BS_0001_F05</span>, <span class="op">-</span><span class="va">NEG_UWTrinh_BS_0001_H05</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">pivot_longer</span><span class="op">(</span><span class="va">S200_V00</span><span class="op">:</span><span class="va">S214_V2B</span>, </span>
-<span>               names_to <span class="op">=</span> <span class="st">"sample_coverage"</span>, values_to <span class="op">=</span> <span class="st">"coverage"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">sample_profile_db</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">sample_coverage</span>,<span class="fl">1</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">sample_profile_db</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">rename</span><span class="op">(</span>sample <span class="op">=</span> <span class="va">sample_coverage</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">sample</span>, <span class="va">t_domain</span>, <span class="va">t_phylum</span>, <span class="va">t_class</span>, <span class="va">t_order</span>, <span class="va">t_family</span>, <span class="va">t_genus</span>, <span class="va">t_species</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">summarise</span><span class="op">(</span>coverage <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">coverage</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">mutate</span><span class="op">(</span>taxa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"d__"</span>, <span class="va">t_domain</span>, <span class="st">";p__"</span>, <span class="va">t_phylum</span>, </span>
-<span>                       <span class="st">";c__"</span>, <span class="va">t_class</span>, <span class="st">";o__"</span>,<span class="va">t_order</span>,<span class="st">";f__"</span>,<span class="va">t_family</span>,</span>
-<span>                       <span class="st">";g__"</span>, <span class="va">t_genus</span>, <span class="st">";s__"</span>,<span class="va">t_species</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">t_domain</span>, <span class="op">-</span><span class="va">t_phylum</span>, <span class="op">-</span><span class="va">t_class</span>, <span class="op">-</span><span class="va">t_order</span>, <span class="op">-</span><span class="va">t_family</span>, <span class="op">-</span><span class="va">t_genus</span>, <span class="op">-</span><span class="va">t_species</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">pivot_wider</span><span class="op">(</span>values_from <span class="op">=</span> <span class="va">coverage</span>, values_fill <span class="op">=</span> <span class="fl">0</span>, names_from <span class="op">=</span> <span class="va">taxa</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">column_to_rownames</span><span class="op">(</span>var<span class="op">=</span><span class="st">"sample"</span><span class="op">)</span> </span></code></pre></div>
-<p>How many species are there?</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">coverages_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="st">"../data/11_MGX_TAXONOMY/"</span>,pattern <span class="op">=</span> <span class="st">"^S.*txt"</span>, full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span>FUN <span class="op">=</span> <span class="va">read_tsv</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/separate.html" class="external-link">separate</a></span><span class="op">(</span><span class="va">scg_name</span>, sep <span class="op">=</span> <span class="st">"_"</span>, into <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sample_profile_db"</span>, <span class="cn">NA</span>, <span class="st">"marker"</span>, <span class="st">"strain"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">percent_identity</span>, <span class="op">-</span><span class="va">marker</span>, <span class="op">-</span><span class="va">strain</span>, <span class="op">-</span><span class="va">NEG_UWTrinh_BS_0001_F05</span>, <span class="op">-</span><span class="va">NEG_UWTrinh_BS_0001_H05</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span><span class="va">S200_V00</span><span class="op">:</span><span class="va">S214_V2B</span>, </span>
+<span>               names_to <span class="op">=</span> <span class="st">"sample_coverage"</span>, values_to <span class="op">=</span> <span class="st">"coverage"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">sample_profile_db</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">sample_coverage</span>,<span class="fl">1</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">sample_profile_db</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>sample <span class="op">=</span> <span class="va">sample_coverage</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">sample</span>, <span class="va">t_domain</span>, <span class="va">t_phylum</span>, <span class="va">t_class</span>, <span class="va">t_order</span>, <span class="va">t_family</span>, <span class="va">t_genus</span>, <span class="va">t_species</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>coverage <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">coverage</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>taxa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"d__"</span>, <span class="va">t_domain</span>, <span class="st">";p__"</span>, <span class="va">t_phylum</span>, </span>
+<span>                       <span class="st">";c__"</span>, <span class="va">t_class</span>, <span class="st">";o__"</span>,<span class="va">t_order</span>,<span class="st">";f__"</span>,<span class="va">t_family</span>,</span>
+<span>                       <span class="st">";g__"</span>, <span class="va">t_genus</span>, <span class="st">";s__"</span>,<span class="va">t_species</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>sp_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">t_species</span> <span class="op">==</span> <span class="st">"None"</span>, <span class="va">taxa</span>, <span class="va">t_species</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://stringr.tidyverse.org/reference/str_replace.html" class="external-link">str_replace</a></span><span class="op">(</span><span class="st">" "</span>, <span class="st">"_"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">coverages</span> <span class="op">&lt;-</span> <span class="va">coverages_all</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">sample</span>, <span class="va">coverage</span>, <span class="va">sp_name</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>values_from <span class="op">=</span> <span class="va">coverage</span>, values_fill <span class="op">=</span> <span class="fl">0</span>, names_from <span class="op">=</span> <span class="va">sp_name</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/rownames.html" class="external-link">column_to_rownames</a></span><span class="op">(</span>var<span class="op">=</span><span class="st">"sample"</span><span class="op">)</span> </span></code></pre></div>
+<p>How many species are there?</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">coverages</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1]  35 472</span></span></code></pre>
 <p>Based on the dimensions of the metadata and coverage data, how are
 these data tables related?</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">coverages</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##  [1] "S200_V00" "S200_V11" "S200_V22" "S200_V33" "S200_V44" "S201_V00"</span></span>
 <span><span class="co">##  [7] "S201_V11" "S201_V22" "S201_V33" "S201_V44" "S207_V0A" "S207_V0B"</span></span>
@@ -199,7 +205,7 @@ these data tables related?</p>
 <span><span class="co">## [19] "S210_V0A" "S210_V0B" "S210_V1A" "S210_V1B" "S211_V00" "S211_V11"</span></span>
 <span><span class="co">## [25] "S211_V22" "S212_V00" "S212_V11" "S212_V22" "S213_V00" "S213_V11"</span></span>
 <span><span class="co">## [31] "S213_V22" "S214_V0A" "S214_V0B" "S214_V2A" "S214_V2B"</span></span></code></pre>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">meta</span><span class="op">$</span><span class="va">sample_id</span></span></code></pre></div>
 <pre><code><span><span class="co">##  [1] "S200_V00" "S200_V11" "S200_V22" "S200_V33" "S200_V44" "S201_V00"</span></span>
 <span><span class="co">##  [7] "S201_V11" "S201_V22" "S201_V33" "S201_V44" "S207_V0A" "S207_V0B"</span></span>
@@ -210,30 +216,28 @@ these data tables related?</p>
 <p>To keep things simple, if there are technical replicates, we will
 retain only one. For this, we will remove all samples labelled with a
 “B” at the end.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">coverages</span> <span class="op">&lt;-</span> <span class="va">coverages</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/startsWith.html" class="external-link">endsWith</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">coverages</span><span class="op">)</span>,<span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">meta</span> <span class="op">&lt;-</span> <span class="va">meta</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/startsWith.html" class="external-link">endsWith</a></span><span class="op">(</span><span class="va">sample_id</span>,<span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">coverages</span> <span class="op">&lt;-</span> <span class="va">coverages</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/startsWith.html" class="external-link">endsWith</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">coverages</span><span class="op">)</span>, <span class="st">"B"</span><span class="op">)</span>, <span class="op">]</span></span>
+<span><span class="va">meta</span> <span class="op">&lt;-</span> <span class="va">meta</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/startsWith.html" class="external-link">endsWith</a></span><span class="op">(</span><span class="va">sample_id</span>,<span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Remember that we’re interested in estimating fold-changes in
 microbial abundances before compared to after commencing dairy work. So,
 we will create a variable called <code>exposed</code>, which will
 differentiate between samples collected at baseline (FALSE: very first
 sample collected for each host) and those collected after exposure
 (TRUE: samples collected subsequently).</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">meta</span> <span class="op">&lt;-</span> <span class="va">meta</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">rownames_to_column</span><span class="op">(</span><span class="st">"Rownames"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">host_subject_id</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">mutate</span><span class="op">(</span>exposed <span class="op">=</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">collection_date</span><span class="op">)</span> <span class="op">&lt;</span> <span class="va">collection_date</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">column_to_rownames</span><span class="op">(</span>var<span class="op">=</span><span class="st">"Rownames"</span><span class="op">)</span></span></code></pre></div>
-<p>Check we have one exposed and the rest unexposed:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">meta</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">host_subject_id</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">count</span><span class="op">(</span><span class="va">exposed</span>,<span class="va">host_subject_id</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">meta</span> <span class="op">&lt;-</span> <span class="va">meta</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/rownames.html" class="external-link">rownames_to_column</a></span><span class="op">(</span><span class="st">"Rownames"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">host_subject_id</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>exposed <span class="op">=</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">collection_date</span><span class="op">)</span> <span class="op">&lt;</span> <span class="va">collection_date</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/rownames.html" class="external-link">column_to_rownames</a></span><span class="op">(</span>var<span class="op">=</span><span class="st">"Rownames"</span><span class="op">)</span></span></code></pre></div>
+<p>Check we have one exposed and the rest unexposed:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">meta</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">host_subject_id</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">exposed</span>,<span class="va">host_subject_id</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 18 × 3</span></span></span>
 <span><span class="co">## <span style="color: #949494;"># Groups:   host_subject_id [9]</span></span></span>
 <span><span class="co">##    host_subject_id exposed     n</span></span>
@@ -258,13 +262,13 @@ sample collected for each host) and those collected after exposure
 <span><span class="co">## <span style="color: #BCBCBC;">18</span> S214            TRUE        1</span></span></code></pre>
 <p>So that <code>radEmu</code> knows now to connect the metadata and the
 coverage data, we need to put the sample labels in the row names:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">meta</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">meta</span><span class="op">$</span><span class="va">sample_id</span></span></code></pre></div>
 <p>Finally, to run radEmu, we need to confirm that all species are
 detected in at least one sample. (Even if it was true at the beginning,
 we could have taxa that were only in the removed samples.)</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">coverages</span> <span class="op">&lt;-</span> <span class="va">coverages</span> <span class="op">%&gt;%</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="fu">where</span><span class="op">(</span><span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">coverages</span> <span class="op">&lt;-</span> <span class="va">coverages</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/where.html" class="external-link">where</a></span><span class="op">(</span><span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">.x</span><span class="op">)</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">coverages</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1]  27 469</span></span></code></pre>
 <p>27 samples, 469 species, woohoo!</p>
@@ -303,16 +307,16 @@ whether or not to run score tests.</li>
 <p>Say NO for now! We’ll come back to this.</p>
 <p>Let’s see how the model fitting looks with the variables explained
 above! This code should take less than a minute to run.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span><span class="va">hdw_fit</span> <span class="op">&lt;-</span> <span class="fu">emuFit</span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">exposed</span>,</span>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span><span class="va">hdw_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://statdivlab.github.io/radEmu/reference/emuFit.html" class="external-link">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">exposed</span>,</span>
 <span>                  data <span class="op">=</span> <span class="va">meta</span>,</span>
 <span>                  Y <span class="op">=</span> <span class="va">coverages</span>,</span>
 <span>                  cluster <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">host_subject_id</span>,</span>
 <span>                  run_score_tests <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##    user  system elapsed </span></span>
-<span><span class="co">##  10.133   0.271  11.022</span></span></code></pre>
+<span><span class="co">##  15.306   0.512  18.694</span></span></code></pre>
 <p>Let’s look at our results and talk through them together.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hdw_fit</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Call:</span></span>
@@ -342,27 +346,27 @@ above! This code should take less than a minute to run.</p>
 <span><span class="co">## 173 exposedTRUE</span></span>
 <span><span class="co">## 290 exposedTRUE</span></span>
 <span><span class="co">## 109 exposedTRUE</span></span>
-<span><span class="co">##                                                                                                                                   category</span></span>
-<span><span class="co">## 4    d__Bacteria;p__Actinomycetota;c__Actinomycetia;o__Actinomycetales;f__Bifidobacteriaceae;g__Bifidobacterium;s__Bifidobacterium bifidum</span></span>
-<span><span class="co">## 395                  d__Bacteria;p__Bacillota_C;c__Negativicutes;o__Veillonellales;f__Dialisteraceae;g__Dialister;s__Dialister sp002320515</span></span>
-<span><span class="co">## 55                d__Bacteria;p__Bacillota_A;c__Clostridia;o__Lachnospirales;f__Lachnospiraceae;g__Ruminococcus_B;s__Ruminococcus_B gnavus</span></span>
-<span><span class="co">## 3   d__Bacteria;p__Actinomycetota;c__Actinomycetia;o__Actinomycetales;f__Bifidobacteriaceae;g__Bifidobacterium;s__Bifidobacterium animalis</span></span>
-<span><span class="co">## 101               d__Bacteria;p__Bacteroidota;c__Bacteroidia;o__Bacteroidales;f__Bacteroidaceae;g__Phocaeicola;s__Phocaeicola massiliensis</span></span>
-<span><span class="co">## 50                                      d__Bacteria;p__Bacillota_A;c__Clostridia;o__Lachnospirales;f__Lachnospiraceae;g__Merdisoma;s__None</span></span>
-<span><span class="co">## 353                    d__Bacteria;p__Bacillota_A;c__Clostridia;o__Oscillospirales;f__Oscillospiraceae;g__CALXCQ01;s__CALXCQ01 sp944386835</span></span>
-<span><span class="co">## 11                           d__Bacteria;p__Actinomycetota;c__Coriobacteriia;o__Coriobacteriales;f__Eggerthellaceae;g__Eggerthella;s__None</span></span>
-<span><span class="co">## 273                       d__Bacteria;p__Bacillota_A;c__Clostridia;o__Oscillospirales;f__Ruminococcaceae;g__CAG-353;s__CAG-353 sp900066885</span></span>
-<span><span class="co">## 56                                    d__Bacteria;p__Bacillota_A;c__Clostridia;o__Lachnospirales;f__Lachnospiraceae;g__Ventrimonas;s__None</span></span>
-<span><span class="co">## 433           d__Bacteria;p__Bacillota_A;c__Clostridia;o__Oscillospirales;f__Ruminococcaceae;g__Angelakisella;s__Angelakisella sp900552845</span></span>
-<span><span class="co">## 15                                 d__Bacteria;p__Bacillota;c__Bacilli;o__Erysipelotrichales;f__Coprobacillaceae;g__Thomasclavelia;s__None</span></span>
-<span><span class="co">## 95                 d__Bacteria;p__Bacillota_C;c__Negativicutes;o__Veillonellales;f__Megasphaeraceae;g__Megasphaera;s__Megasphaera elsdenii</span></span>
-<span><span class="co">## 160                   d__Bacteria;p__Verrucomicrobiota;c__Verrucomicrobiae;o__Verrucomicrobiales;f__Akkermansiaceae;g__Akkermansia;s__None</span></span>
-<span><span class="co">## 77                 d__Bacteria;p__Bacillota_A;c__Clostridia;o__Oscillospirales;f__Oscillospiraceae;g__Vescimonas;s__Vescimonas sp000435975</span></span>
-<span><span class="co">## 448                    d__Bacteria;p__Verrucomicrobiota;c__Verrucomicrobiae;o__Opitutales;f__CAG-312;g__Merdousia;s__Merdousia sp900548275</span></span>
-<span><span class="co">## 232                                      d__Bacteria;p__Bacillota_A;c__Clostridia;o__TANB77;f__CAG-508;g__UMGS1901;s__UMGS1901 sp900553755</span></span>
-<span><span class="co">## 173                                        d__Bacteria;p__Bacillota;c__Bacilli;o__Lactobacillales;f__Lactobacillaceae;g__Weissella;s__None</span></span>
-<span><span class="co">## 290                  d__Bacteria;p__Pseudomonadota;c__Gammaproteobacteria;o__Enterobacterales;f__Enterobacteriaceae;g__Citrobacter;s__None</span></span>
-<span><span class="co">## 109                     d__Bacteria;p__Bacteroidota;c__Bacteroidia;o__Bacteroidales;f__Rikenellaceae;g__Alistipes;s__Alistipes onderdonkii</span></span>
+<span><span class="co">##                                                                                                                  category</span></span>
+<span><span class="co">## 4                                                                                                 Bifidobacterium_bifidum</span></span>
+<span><span class="co">## 395                                                                                                 Dialister_sp002320515</span></span>
+<span><span class="co">## 55                                                                                                  Ruminococcus_B_gnavus</span></span>
+<span><span class="co">## 3                                                                                                Bifidobacterium_animalis</span></span>
+<span><span class="co">## 101                                                                                              Phocaeicola_massiliensis</span></span>
+<span><span class="co">## 50                     d__Bacteria;p__Bacillota_A;c__Clostridia;o__Lachnospirales;f__Lachnospiraceae;g__Merdisoma;s__None</span></span>
+<span><span class="co">## 353                                                                                                  CALXCQ01_sp944386835</span></span>
+<span><span class="co">## 11          d__Bacteria;p__Actinomycetota;c__Coriobacteriia;o__Coriobacteriales;f__Eggerthellaceae;g__Eggerthella;s__None</span></span>
+<span><span class="co">## 273                                                                                                   CAG-353_sp900066885</span></span>
+<span><span class="co">## 56                   d__Bacteria;p__Bacillota_A;c__Clostridia;o__Lachnospirales;f__Lachnospiraceae;g__Ventrimonas;s__None</span></span>
+<span><span class="co">## 433                                                                                             Angelakisella_sp900552845</span></span>
+<span><span class="co">## 15                d__Bacteria;p__Bacillota;c__Bacilli;o__Erysipelotrichales;f__Coprobacillaceae;g__Thomasclavelia;s__None</span></span>
+<span><span class="co">## 95                                                                                                   Megasphaera_elsdenii</span></span>
+<span><span class="co">## 160  d__Bacteria;p__Verrucomicrobiota;c__Verrucomicrobiae;o__Verrucomicrobiales;f__Akkermansiaceae;g__Akkermansia;s__None</span></span>
+<span><span class="co">## 77                                                                                                 Vescimonas_sp000435975</span></span>
+<span><span class="co">## 448                                                                                                 Merdousia_sp900548275</span></span>
+<span><span class="co">## 232                                                                                                  UMGS1901_sp900553755</span></span>
+<span><span class="co">## 173                       d__Bacteria;p__Bacillota;c__Bacilli;o__Lactobacillales;f__Lactobacillaceae;g__Weissella;s__None</span></span>
+<span><span class="co">## 290 d__Bacteria;p__Pseudomonadota;c__Gammaproteobacteria;o__Enterobacterales;f__Enterobacteriaceae;g__Citrobacter;s__None</span></span>
+<span><span class="co">## 109                                                                                                 Alistipes_onderdonkii</span></span>
 <span><span class="co">##     category_num  estimate        se     lower     upper</span></span>
 <span><span class="co">## 4              4  7.558651 0.5347523  6.510556  8.606746</span></span>
 <span><span class="co">## 395          395  6.544570 0.9669288  4.649425  8.439716</span></span>
@@ -390,18 +394,16 @@ above! This code should take less than a minute to run.</p>
 access estimated coefficients and confidence intervals from the model is
 with <code>hdw_fit$coef</code>. Let’s look at one, then save the
 estimates in a vector.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="fl">52</span>, <span class="op">]</span> </span></code></pre></div>
-<pre><code><span><span class="co">##      covariate</span></span>
-<span><span class="co">## 52 exposedTRUE</span></span>
-<span><span class="co">##                                                                                                                        category</span></span>
-<span><span class="co">## 52 d__Bacteria;p__Bacillota_A;c__Clostridia;o__Lachnospirales;f__Lachnospiraceae;g__Oliverpabstia;s__Oliverpabstia intestinalis</span></span>
-<span><span class="co">##    category_num estimate         se   lower    upper score_stat pval</span></span>
-<span><span class="co">## 52           52 2.411388 0.06977598 2.27463 2.548147         NA   NA</span></span></code></pre>
+<pre><code><span><span class="co">##      covariate                   category category_num estimate         se</span></span>
+<span><span class="co">## 52 exposedTRUE Oliverpabstia_intestinalis           52 2.411388 0.06977598</span></span>
+<span><span class="co">##      lower    upper score_stat pval</span></span>
+<span><span class="co">## 52 2.27463 2.548147         NA   NA</span></span></code></pre>
 <p>Let’s interpret these results! Here’s three equivalent
 interpretations:</p>
 <ul>
-<li>We estimate that the average abundance of Oliverpabstia intestinalis
+<li>We estimate that the average abundance of Oliverpabstia_intestinalis
 in metagenomes is 11 times greater after commencing dairy work, when
 compared to the typical fold-differences in the average abundance of
 taxa across these visits. (Yep – that’s a <em>ratio</em> of
@@ -409,13 +411,13 @@ taxa across these visits. (Yep – that’s a <em>ratio</em> of
 </ul>
 <!-- - We estimate that the abundance of *Oliverpabstia intestinalis* in metagenomes from subsequent visits is $e^{2.41} = 11.13$ times greater than those from the baseline, when compared to the typical fold-differences in the abundance of taxa across these visits. (Yep -- that's a *ratio* of *ratios*.) --><ul>
 <li><p>We estimate that the log-fold difference in the average abundance
-of Oliverpabstia intestinalis in metagenomes from visits post and prior
+of Oliverpabstia_intestinalis in metagenomes from visits post and prior
 exposure is 2.4 greater than the typical log-fold difference in the
 average abundance of taxa across these groups. (That’s a
 <em>difference</em> in <em>differences</em>.)</p></li>
 <li><p>Under the assumption that most taxa do not differ in average
 abundance between visits post and prior exposure, we estimate that the
-abundance of Oliverpabstia intestinalis in metagenomes from post
+abundance of Oliverpabstia_intestinalis in metagenomes from post
 exposure visits is 11 times greater than prior exposure visits.</p></li>
 </ul>
 <p>By default <code>radEmu</code> compares the log fold difference in
@@ -428,16 +430,16 @@ taxon.</p>
 <p><strong>Please take the time to interpret your estimates, don’t just
 report p-values.</strong></p>
 <p>Ok, that’s one taxon. Let’s look at our results.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">arrange</span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">mutate</span><span class="op">(</span>order <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu">n</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">ggplot</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">order</span>, y <span class="op">=</span> <span class="va">estimate</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu">geom_point</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu">geom_errorbar</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">lower</span>, ymax <span class="op">=</span> <span class="va">upper</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu">labs</span><span class="op">(</span>x <span class="op">=</span> <span class="st">""</span>, y <span class="op">=</span> <span class="st">"Estimate (with 95% confidence interval)"</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu">ggtitle</span><span class="op">(</span><span class="st">"Log fold-difference estimates"</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu">theme</span><span class="op">(</span>plot.title <span class="op">=</span> <span class="fu">element_text</span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>order <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">order</span>, y <span class="op">=</span> <span class="va">estimate</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_errorbar</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">lower</span>, ymax <span class="op">=</span> <span class="va">upper</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">""</span>, y <span class="op">=</span> <span class="st">"Estimate (with 95% confidence interval)"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Log fold-difference estimates"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>plot.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="ebame10_pt3_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
 <p>Here we can see the distribution of log fold-difference estimates
 from our model, as well as 95% confidence intervals.</p>
@@ -446,13 +448,19 @@ from our model, as well as 95% confidence intervals.</p>
 <h2 id="is-this-even-reasonable">Is this even reasonable?<a class="anchor" aria-label="anchor" href="#is-this-even-reasonable"></a>
 </h2>
 <p>A quick check…</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">largest_diff</span> <span class="op">&lt;-</span> <span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="va">tibble</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">pull</span><span class="op">(</span><span class="va">category</span><span class="op">)</span></span>
-<span><span class="va">meta</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">add_column</span><span class="op">(</span>coverage <span class="op">=</span> <span class="va">coverages</span><span class="op">[[</span><span class="va">largest_diff</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">estimate</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 7.558651</span></span></code></pre>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">estimate</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 1917.257</span></span></code></pre>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">largest_diff</span> <span class="op">&lt;-</span> <span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="va">tibble</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">category</span><span class="op">)</span></span>
+<span><span class="va">meta</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/add_column.html" class="external-link">add_column</a></span><span class="op">(</span>coverage <span class="op">=</span> <span class="va">coverages</span><span class="op">[[</span><span class="va">largest_diff</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">sample_id</span>, <span class="va">exposed</span>, <span class="va">coverage</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##          sample_id exposed  coverage</span></span>
 <span><span class="co">## S200_V00  S200_V00   FALSE   0.00000</span></span>
@@ -506,10 +514,10 @@ before</li>
 parameters (in <code>hdw_fit$B</code>) that we want to test.</li>
 </ul>
 <p>This should take about a minute to run on the RStudio server.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">taxa_to_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">134</span>, <span class="fl">372</span><span class="op">)</span></span>
-<span><span class="va">covariate_to_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="st">"exposedTRUE"</span> <span class="op">==</span> <span class="va">hdw_fit</span><span class="op">$</span><span class="va">B</span> <span class="op">%&gt;%</span> <span class="va">rownames</span><span class="op">)</span></span>
-<span><span class="va">two_robust_score_tests</span> <span class="op">&lt;-</span> <span class="fu">emuFit</span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">exposed</span>,</span>
+<span><span class="va">covariate_to_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="st">"exposedTRUE"</span> <span class="op">==</span> <span class="va">hdw_fit</span><span class="op">$</span><span class="va">B</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="va">rownames</span><span class="op">)</span></span>
+<span><span class="va">two_robust_score_tests</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://statdivlab.github.io/radEmu/reference/emuFit.html" class="external-link">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">exposed</span>,</span>
 <span>                                 data <span class="op">=</span> <span class="va">meta</span>,</span>
 <span>                                 Y <span class="op">=</span> <span class="va">coverages</span>,</span>
 <span>                                 cluster <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">host_subject_id</span>,</span>
@@ -522,43 +530,31 @@ parameters (in <code>hdw_fit$B</code>) that we want to test.</li>
 <span>                                 verbose <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                                 <span class="co"># don't need to re-compute confidence intervals</span></span>
 <span>                                 compute_cis <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> </span></code></pre></div>
-<pre><code><span><span class="co">## Centering row 1 of B with pseudo-Huber smoothed median with smoothing parameter 0.1.</span></span></code></pre>
-<pre><code><span><span class="co">## Centering row 2 of B with pseudo-Huber smoothed median with smoothing parameter 0.1.</span></span></code></pre>
-<pre><code><span><span class="co">## Running score test 1 of 2 (row of B k = 2; column of B j = 134).</span></span></code></pre>
-<pre><code><span><span class="co">## Score test 1 of 2 (row of B k = 2; column of B j = 134) has completed in approximately 23 seconds.</span></span></code></pre>
-<pre><code><span><span class="co">## Running score test 2 of 2 (row of B k = 2; column of B j = 372).</span></span></code></pre>
-<pre><code><span><span class="co">## Score test 2 of 2 (row of B k = 2; column of B j = 372) has completed in approximately 16 seconds.</span></span></code></pre>
 <p>Let’s take a look at the test output.</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">two_robust_score_tests</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="va">taxa_to_test</span>, <span class="op">]</span></span></code></pre></div>
-<pre><code><span><span class="co">##       covariate</span></span>
-<span><span class="co">## 134 exposedTRUE</span></span>
-<span><span class="co">## 372 exposedTRUE</span></span>
-<span><span class="co">##                                                                                                                  category</span></span>
-<span><span class="co">## 134 d__Bacteria;p__Bacillota_A;c__Clostridia;o__Clostridiales;f__Clostridiaceae;g__Clostridium;s__Clostridium sp900543325</span></span>
-<span><span class="co">## 372 d__Bacteria;p__Bacillota_A;c__Clostridia;o__Clostridiales;f__Clostridiaceae;g__Clostridium;s__Clostridium sp000435835</span></span>
-<span><span class="co">##     category_num  estimate lower upper score_stat      pval</span></span>
-<span><span class="co">## 134          134 -2.158088    NA    NA   1.541493 0.2143957</span></span>
-<span><span class="co">## 372          372  2.298507    NA    NA   1.052940 0.3048309</span></span></code></pre>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<pre><code><span><span class="co">##       covariate                category category_num  estimate lower upper</span></span>
+<span><span class="co">## 134 exposedTRUE Clostridium_sp900543325          134 -2.158088    NA    NA</span></span>
+<span><span class="co">## 372 exposedTRUE Clostridium_sp000435835          372  2.298507    NA    NA</span></span>
+<span><span class="co">##     score_stat      pval</span></span>
+<span><span class="co">## 134   1.541493 0.2143957</span></span>
+<span><span class="co">## 372   1.052940 0.3048309</span></span></code></pre>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="va">taxa_to_test</span>, <span class="op">]</span></span></code></pre></div>
-<pre><code><span><span class="co">##       covariate</span></span>
-<span><span class="co">## 134 exposedTRUE</span></span>
-<span><span class="co">## 372 exposedTRUE</span></span>
-<span><span class="co">##                                                                                                                  category</span></span>
-<span><span class="co">## 134 d__Bacteria;p__Bacillota_A;c__Clostridia;o__Clostridiales;f__Clostridiaceae;g__Clostridium;s__Clostridium sp900543325</span></span>
-<span><span class="co">## 372 d__Bacteria;p__Bacillota_A;c__Clostridia;o__Clostridiales;f__Clostridiaceae;g__Clostridium;s__Clostridium sp000435835</span></span>
-<span><span class="co">##     category_num  estimate        se      lower      upper score_stat pval</span></span>
-<span><span class="co">## 134          134 -2.158088 1.0302755 -4.1773906 -0.1387848         NA   NA</span></span>
-<span><span class="co">## 372          372  2.298507 0.9054109  0.5239343  4.0730799         NA   NA</span></span></code></pre>
+<pre><code><span><span class="co">##       covariate                category category_num  estimate        se</span></span>
+<span><span class="co">## 134 exposedTRUE Clostridium_sp900543325          134 -2.158088 1.0302755</span></span>
+<span><span class="co">## 372 exposedTRUE Clostridium_sp000435835          372  2.298507 0.9054109</span></span>
+<span><span class="co">##          lower      upper score_stat pval</span></span>
+<span><span class="co">## 134 -4.1773906 -0.1387848         NA   NA</span></span>
+<span><span class="co">## 372  0.5239343  4.0730799         NA   NA</span></span></code></pre>
 <p>We do not have strong statistical evidence to conclude the
 fold-difference in abundance of these two taxa before and after exposure
 is any different than the typical fold-difference. Here’s an example
 interpretation appropriate for a paper</p>
-<p>We estimate that the average abundance of Clostridium sp900543325 in
-metagenomes is 8.3333333 times greater <em>before</em> commencing dairy
-work, when compared to the typical fold-differences in the average
-abundance of taxa across these visits (95% CI 1.1494253–66.6666667).</p>
+<p>We estimate that the average abundance of Clostridium_sp900543325 in
+metagenomes is 8.7 times greater <em>before</em> commencing dairy work,
+when compared to the typical fold-differences in the average abundance
+of taxa across these visits (95% CI 1.1–65).</p>
 <p>In many data analyses, we’d like to run reliable tests for all taxa
 that we have measured. We could run robust score tests for every taxon
 in this analysis, but it will take a long time to run all tests
@@ -566,26 +562,27 @@ serially. They can easily be run in parallel on a computing cluster (for
 example, if you are in a VM!).</p>
 <p>We show you how this looks in the following chunk. DO NOT RUN UNLESS
 YOU HAVE THE TIME!</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ncores</span> <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span>
 <span><span class="va">emuTest</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">category</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">score_res</span> <span class="op">&lt;-</span> <span class="fu">emuFit</span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">exposed</span>,</span>
+<span>  <span class="va">score_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://statdivlab.github.io/radEmu/reference/emuFit.html" class="external-link">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">exposed</span>,</span>
 <span>                       data <span class="op">=</span> <span class="va">meta</span>,</span>
 <span>                       fitted_model <span class="op">=</span> <span class="va">hdw_fit</span>,</span>
 <span>                       refit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                       cluster <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">host_subject_id</span>,</span>
 <span>                       test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="va">covariate_to_test</span>, </span>
 <span>                                            j <span class="op">=</span> <span class="va">category</span><span class="op">)</span>, </span>
-<span>                       Y <span class="op">=</span> <span class="va">mOTU</span><span class="op">)</span></span>
+<span>                       Y <span class="op">=</span> <span class="va">coverages</span><span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">score_res</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="va">.Platform</span><span class="op">$</span><span class="va">OS.type</span> <span class="op">!=</span> <span class="st">"windows"</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"GITHUB_ACTIONS"</span><span class="op">)</span>, <span class="st">"true"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co"># run if we are on a Mac or Linux machine</span></span>
-<span>  <span class="va">score_res</span> <span class="op">&lt;-</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,</span>
+<span>  <span class="va">score_res</span> <span class="op">&lt;-</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">coverages</span><span class="op">)</span>,</span>
 <span>                      <span class="va">emuTest</span>,</span>
 <span>                      mc.cores <span class="op">=</span> <span class="va">ncores</span><span class="op">)</span></span>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
 <span>  <span class="co"># don't run if we are on a Windows machine, or if testing with GitHub actions</span></span>
+<span>  <span class="co"># You can do it! You just would need a different setup. Please reach out!</span></span>
 <span>  <span class="va">score_res</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
 <span><span class="op">}</span></span>
 <span></span>
@@ -599,10 +596,10 @@ YOU HAVE THE TIME!</p>
 <span>                       <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">score_res</span><span class="op">[[</span><span class="va">x</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">score_stat</span><span class="op">[</span><span class="va">x</span><span class="op">]</span><span class="op">)</span></span>
 <span>  <span class="va">full_pval</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">score_res</span><span class="op">)</span>, </span>
 <span>                      <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">score_res</span><span class="op">[[</span><span class="va">x</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">pval</span><span class="op">[</span><span class="va">x</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">full_coef</span> <span class="op">&lt;-</span> <span class="va">ch_fit</span><span class="op">$</span><span class="va">coef</span> <span class="op">%&gt;%</span></span>
-<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">score_stat</span>, <span class="op">-</span><span class="va">pval</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">category_num</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>    <span class="fu">mutate</span><span class="op">(</span>score_stat <span class="op">=</span> <span class="va">full_score</span>,</span>
+<span>  <span class="va">full_coef</span> <span class="op">&lt;-</span> <span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">score_stat</span>, <span class="op">-</span><span class="va">pval</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">category_num</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">coverages</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>score_stat <span class="op">=</span> <span class="va">full_score</span>,</span>
 <span>           pval <span class="op">=</span> <span class="va">full_pval</span><span class="op">)</span></span>
 <span>  <span class="va">full_coef</span></span>
 <span><span class="op">}</span></span></code></pre></div>
@@ -624,7 +621,8 @@ Some other popular alternatives include <code>ALDEx2</code>,
 <code>ANCOM-BC2</code>, and <code>DESeq2</code>. Each of these methods
 (and the many differential abundance methods that we didn’t consider
 here) have pros and cons. Here’s a list of our opinions on these
-methods. This is data driven, but definitely reflects our bias.</p>
+methods. <strong>These critiques are data-driven, but definitely reflect
+our bias.</strong></p>
 <ul>
 <li>
 <code>radEmu</code>
