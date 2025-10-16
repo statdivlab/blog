@@ -123,7 +123,7 @@ All we need is</p>
 <ol style="list-style-type: decimal">
 <li>A list of the genomes that we want to include in the analysis. Here,
 we’re going to use the external genomes file
-<code>external-genomes.txt</code>. (Check it out its format with
+<code>external-genomes.txt</code>. (Check out its format with
 <code>head external-genomes.txt</code>.)</li>
 <li>The name of the file we want to save the results. I’m going to call
 it <code>enrichment-output.txt</code>.</li>
@@ -172,7 +172,9 @@ MIT9123 HL_II   HL
 I want to copy the column light and call it group. give me a cmd line one-liner thx</code></pre>
 <p>(You don’t have to say thanks, but maybe we’ll be less likely to turn
 into paperclips)</p>
-<pre><code>awk 'BEGIN{OFS="\t"} NR==1{$(NF+1)="group"} NR&gt;1{$(NF+1)=$3}1' layer-additional-data.txt &gt; layer-additional-data-with-group.txt\n</code></pre>
+<pre><code>awk 'BEGIN{OFS="\t"} NR==1{$(NF+1)="group"} NR&gt;1{$(NF+1)=$3}1' layer-additional-data.txt &gt; layer-additional-data-with-group.txt</code></pre>
+<p>It created a new document with the additional column (Check with
+<code>head layer-additional-data-with-group.txt</code>)</p>
 <p>Ok! Let’s try again!</p>
 <pre><code>anvi-compute-functional-enrichment-across-genomes -e external-genomes.txt -o enrichment-output.txt --annotation-source COG14_FUNCTION -G layer-additional-data-with-group.txt</code></pre>
 <p>“Config Error: The database at ‘Prochlorococcus_31_genomes/AS9601.db’
