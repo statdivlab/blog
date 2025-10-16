@@ -217,23 +217,77 @@ install it if you haven’t.</p>
 <pre><code><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"statdivlab/raoBust"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">raoBust</span><span class="op">)</span></span></code></pre>
-<p>Let’s start with a small case. How can we learn if there is any
-difference in the odds of the gene with accession “COG0592” being
-present between samples with high or low light?</p>
-<p>The following code fits a model to estimate that very difference.</p>
+<p>Let’s start with a small case and turn our attention to the gene with
+accession “COG4251”, because as shown by</p>
+<pre><code><span><span class="va">cog_fns</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">accession</span> <span class="op">==</span> <span class="st">"COG4251"</span><span class="op">)</span> </span></code></pre>
+<p>this gene codes for a light-sensitive protein. Thus, we would expect
+the odds of it being present in a sample will be different in samples
+collected with high or low light. How can we learn if this is the
+case?</p>
+<p>The following code fits a model to estimate the difference in odds we
+are looking for.</p>
+<pre><code><span><span class="va">genes_long</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">cog</span> <span class="op">==</span> <span class="st">"COG4251"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/raoBust/man/glm_test.html" class="external-link">glm_test</a></span><span class="op">(</span><span class="va">presence</span> <span class="op">~</span> <span class="va">light</span>, data <span class="op">=</span> <span class="va">.</span>,</span>
+<span>           family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">binomial</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"logit"</span><span class="op">)</span><span class="op">)</span></span></code></pre>
+<p>What do we observe in the output? Is the estimate positive or
+negative? Does it appear to be a significant signal (per the Robust
+Score p-value)?</p>
+<p>Take note of these things for now and contrast them with what we
+obtain when exploring the presence/absence of a different gene. Let’s
+explore the difference in the odd of presence of the gene with accession
+“COG0592”.</p>
 <pre><code><span><span class="va">genes_long</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">cog</span> <span class="op">==</span> <span class="st">"COG0592"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/raoBust/man/glm_test.html" class="external-link">glm_test</a></span><span class="op">(</span><span class="va">presence</span> <span class="op">~</span> <span class="va">light</span>, data <span class="op">=</span> <span class="va">.</span>,</span>
 <span>           family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">binomial</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"logit"</span><span class="op">)</span><span class="op">)</span></span></code></pre>
-<p>What do we observe in the output? Why does it make sense that the
-p-value is large?</p>
+<p>What happened here? Why could it be that the p-value obtained through
+the Robust Score test is so large?</p>
+<p>Well, it turns out…</p>
 <pre><code><span><span class="va">genes_long</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">cog</span> <span class="op">==</span> <span class="st">"COG0592"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">presence</span>,<span class="va">light</span><span class="op">)</span> </span></code></pre>
 <p>Everyone has this gene! And that makes sense, because…</p>
 <pre><code><span><span class="va">cog_fns</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">accession</span> <span class="op">==</span> <span class="st">"COG0592"</span><span class="op">)</span> </span></code></pre>
-<p>Ok, how do we run this at scale?</p>
+</div>
+<div class="section level2">
+<h2 id="interpreting-the-results">Interpreting the results<a class="anchor" aria-label="anchor" href="#interpreting-the-results"></a>
+</h2>
+<p>So we have found some evidence of relatedness between the amount of
+light exposure in a sample and the presence/absence of gene “COG4251”,
+while not having any evidence of the same thing for gene “COG0592”. How
+can we properly report these finds?</p>
+<p>Here is a paragraph that would make a statistician very happy to read
+in your paper:</p>
+<p>We estimate the odds of the gene “COG4251” being present in a
+low-light ocean sample is 9.8^{-10} times lower than the odds of the
+same gene being present in a high-light ocean sample (95% CI [2.9^{-10}
+– 3.3^{-9}]; p = 3.32^{-03}). We have statistical evidence of a
+difference in odds of the presence of this gene between samples from
+low-light ocean areas and samples from high-light ocean areas.</p>
+<p>The values reported above where obtained by computing the exponential
+of the estimates and the confidence interval limits (for example,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>e</mi><mrow><mo>−</mo><mn>20.74839</mn></mrow></msup><mo>=</mo></mrow><annotation encoding="application/x-tex">e^{-20.74839} =</annotation></semantics></math>
+9.8^{-10}), since the fitted model estimated the log fold-difference
+between odds, and when reporting results it might be of interest to
+express how the estimated odds directly change.</p>
+<p>On the other hand, the reporting for gene “COG0592” would be
+different. We are careful in reporting “negative” results, because the
+lack of statistical evidence of a significant difference is not the same
+as evidence for no difference at all.</p>
+<p>We estimate the odds of the gene “COG0592” being present in a
+low-light ocean sample is approximately the same as the odds of the same
+gene being present in a high-light ocean sample (95% CI [0.47 – 2.1]; p
+= 1.0). We have no statistical evidence to reject the hypothesis of the
+odds of the presence of this gene being different between low-light
+ocean samples and high-light ocean samples.</p>
+</div>
+<div class="section level2">
+<h2 id="running-at-scale">Running at scale<a class="anchor" aria-label="anchor" href="#running-at-scale"></a>
+</h2>
+<p>How do we run and handle these tests for the whole set of genes?</p>
 <p>For this we can create a table for each gene (using
 <code>group_split</code> based in the column cog), and running the model
 above for each. This may take a few minutes!</p>
@@ -247,9 +301,8 @@ above for each. This may take a few minutes!</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/relocate.html" class="external-link">relocate</a></span><span class="op">(</span><span class="va">cog</span><span class="op">)</span></span></code></pre>
 </div>
 <div class="section level2">
-<h2 id="interpreting-the-results">Interpreting the results<a class="anchor" aria-label="anchor" href="#interpreting-the-results"></a>
+<h2 id="exploring-and-interpreting-the-results">Exploring and interpreting the results<a class="anchor" aria-label="anchor" href="#exploring-and-interpreting-the-results"></a>
 </h2>
-<p>TODO(AW) needs to elaborate on this</p>
 <p>Now, look at the results! We can do this in several ways like:</p>
 <ol style="list-style-type: decimal">
 <li>Directly looking at the estimated numbers!</li>
@@ -273,6 +326,47 @@ could this be?)</li>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">term</span> <span class="op">==</span> <span class="st">"lightLL"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">Estimate</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">Estimate</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre>
+<p>How can we make any conclusions on this large-scale exploration? And
+how should we report these conclusions?</p>
+<p>When fitting linear models and performing hypothesis tests at large
+scale (as we are doing here, fitting a model for each of the 1546 gene
+functions in our data), we need to be mindful on what we consider
+“statistical significant”. Do this, or risk being overly confident of
+noise!</p>
+<p>Luckily, we have a good way to account for this volume of testing:
+Q-values. These values control for the false discovery rate among all
+tests, by describing the expected proportion of type 1 errors (rejecting
+the null hypothesis when the null hypothesis is true) between the
+rejected hypothesis.</p>
+<p>In simple terms: if a test has q-value 0.05, it means we estimate 5%
+of null hypothesis rejected for being as “extreme” as this hypothesis
+would be false discoveries.</p>
+<p>We can compute the q-values and add these to the estimated
+coefficients for each test with the following code (you will need the
+library qvalue):</p>
+<pre><code><span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="st">"qvalue"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">coefs</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">term</span> <span class="op">==</span> <span class="st">"lightLL"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">`Non-robust Std Error`</span>, <span class="op">-</span><span class="va">`Non-robust Wald p`</span>, <span class="op">-</span><span class="va">`Robust Wald p`</span>, <span class="op">-</span><span class="va">term</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="co"># pull(`Robust Score p`) %&gt;%</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>qq <span class="op">=</span> <span class="fu">qvalue</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/qvalue/man/qvalue.html" class="external-link">qvalue</a></span><span class="op">(</span>p <span class="op">=</span> <span class="va">`Robust Score p`</span><span class="op">)</span><span class="op">$</span><span class="va">qvalues</span><span class="op">)</span></span></code></pre>
+<p>Doing this, what is the q-value associated to the estimator of the
+difference in odds of the presence of gene with accession “COG4251”,
+which we found significant in the previous section?</p>
+<pre><code><span><span class="va">coefs</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">term</span> <span class="op">==</span> <span class="st">"lightLL"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">`Non-robust Std Error`</span>, <span class="op">-</span><span class="va">`Non-robust Wald p`</span>, <span class="op">-</span><span class="va">`Robust Wald p`</span>, <span class="op">-</span><span class="va">term</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="co"># pull(`Robust Score p`) %&gt;%</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>qq <span class="op">=</span> <span class="fu">qvalue</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/qvalue/man/qvalue.html" class="external-link">qvalue</a></span><span class="op">(</span>p <span class="op">=</span> <span class="va">`Robust Score p`</span><span class="op">)</span><span class="op">$</span><span class="va">qvalues</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">cog</span> <span class="op">==</span> <span class="st">"COG4251"</span><span class="op">)</span></span></code></pre>
+<p>We rejected the null hypothesis “The odds of the gene with accession
+COG4251 being present in low-light ocean samples are the same as the
+odds of the gene being present in samples from high-light ocean samples”
+before. The q-value for this test (when ran along tests for all other
+genes) is 0.0536. Meaning, only 5.36% of tests rejected under the same
+conditions would be actually false discoveries. This is a positive
+find!</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

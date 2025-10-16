@@ -129,9 +129,27 @@ remotes::install_github("statdivlab/raoBust")
 library(raoBust)
 ```
 
-Let's start with a small case. How can we learn if there is any difference in the odds of the gene with accession "COG0592" being present between samples with high or low light? 
+Let's start with a small case and turn our attention to the gene with accession "COG4251", because as shown by
 
-The following code fits a model to estimate that very difference.
+```
+cog_fns %>%
+  filter(accession == "COG4251") 
+````
+
+this gene codes for a light-sensitive protein. Thus, we would expect the odds of it being present in a sample will be different in samples collected with high or low light. How can we learn if this is the case? 
+
+The following code fits a model to estimate the difference in odds we are looking for.
+
+```
+genes_long %>%
+  filter(cog == "COG4251") %>%
+  glm_test(presence ~ light, data = .,
+           family = binomial(link = "logit"))
+```
+
+What do we observe in the output? Is the estimate positive or negative? Does it appear to be a significant signal (per the Robust Score p-value)? 
+
+Take note of these things for now and contrast them with what we obtain when exploring the presence/absence of a different gene. Let's explore the difference in the odd of presence of the gene with accession "COG0592".
 
 ```
 genes_long %>%
@@ -140,7 +158,9 @@ genes_long %>%
            family = binomial(link = "logit"))
 ```
 
-What do we observe in the output? Why does it make sense that the p-value is large?
+What happened here? Why could it be that the p-value obtained through the Robust Score test is so large?
+
+Well, it turns out...
 
 ```
 genes_long %>%
@@ -155,7 +175,24 @@ cog_fns %>%
   filter(accession == "COG0592") 
 ```
 
-Ok, how do we run this at scale? 
+# Interpreting the results
+
+So we have found some evidence of relatedness between the amount of light exposure in a sample and the presence/absence of gene "COG4251", while not having any evidence of the same thing for gene "COG0592". How can we properly report these finds? 
+
+Here is a paragraph that would make a statistician very happy to read in your paper: 
+
+We estimate the odds of the gene "COG4251" being present in a low-light ocean sample is `r signif(exp(-20.74839),2)` times lower than the odds of the same gene being present in a high-light ocean sample (95% CI [`r signif(exp(-21.97545 ),2)` -- `r signif(exp(-19.52133),2)`]; p = 3.32^\{-03\}). We have statistical evidence of a difference in odds of the presence of this gene between samples from low-light ocean areas and samples from high-light ocean areas. 
+
+The values reported above where obtained by computing the exponential of the estimates and the confidence interval limits (for example, $e^{-20.74839} =$ `r signif(exp(-20.74839),2)`), since the fitted model estimated the log fold-difference between odds, and when reporting results it might be of interest to express how the estimated odds directly change. 
+
+On the other hand, the reporting for gene "COG0592" would be different. We are careful in reporting "negative" results, because the lack of statistical evidence of a significant difference is not the same as evidence for no difference at all. 
+
+We estimate the odds of the gene "COG0592" being present in a low-light ocean sample is approximately the same as the odds of the same gene being present in a high-light ocean sample (95% CI [`r signif(exp(-0.7606735),2)` -- `r signif(exp(0.7606735),2)`]; p = 1.0). We have no statistical evidence to reject the hypothesis of the odds of the presence of this gene being different between low-light ocean samples and high-light ocean samples. 
+
+
+# Running at scale
+
+How do we run and handle these tests for the whole set of genes? 
 
 For this we can create a table for each gene (using `group_split` based in the column cog), and running the model above for each. This may take a few minutes! 
 
@@ -170,9 +207,7 @@ coefs <- genes_long %>%
   relocate(cog)
 ```
 
-# Interpreting the results
-
-TODO(AW) needs to elaborate on this
+# Exploring and interpreting the results
 
 Now, look at the results! We can do this in several ways like: 
 
@@ -197,3 +232,36 @@ coefs %>%
   arrange(desc(abs(Estimate)))
 ```
 
+How can we make any conclusions on this large-scale exploration? And how should we report these conclusions? 
+
+When fitting linear models and performing hypothesis tests at large scale (as we are doing here, fitting a model for each of the 1546 gene functions in our data), we need to be mindful on what we consider "statistical significant". Do this, or risk being overly confident of noise! 
+
+Luckily, we have a good way to account for this volume of testing: Q-values. These values control for the false discovery rate among all tests, by describing the expected proportion of type 1 errors (rejecting the null hypothesis when the null hypothesis is true) between the rejected hypothesis. 
+
+In simple terms: if a test has q-value 0.05, it means we estimate 5% of null hypothesis rejected for being as "extreme" as this hypothesis would be false discoveries. 
+
+We can compute the q-values and add these to the estimated coefficients for each test with the following code (you will need the library qvalue):
+
+```
+BiocManager::install("qvalue")
+
+coefs %>%
+  filter(term == "lightLL") %>%
+  dplyr::select(-`Non-robust Std Error`, -`Non-robust Wald p`, -`Robust Wald p`, -term) %>%
+  # pull(`Robust Score p`) %>%
+  mutate(qq = qvalue::qvalue(p = `Robust Score p`)$qvalues)
+
+```
+
+Doing this, what is the q-value associated to the estimator of the difference in odds of the presence of gene with accession "COG4251", which we found significant in the previous section?
+
+```
+coefs %>%
+  filter(term == "lightLL") %>%
+  dplyr::select(-`Non-robust Std Error`, -`Non-robust Wald p`, -`Robust Wald p`, -term) %>%
+  # pull(`Robust Score p`) %>%
+  mutate(qq = qvalue::qvalue(p = `Robust Score p`)$qvalues) %>%
+  filter(cog == "COG4251")
+```
+
+We rejected the null hypothesis "The odds of the gene with accession COG4251 being present in low-light ocean samples are the same as the odds of the gene being present in samples from high-light ocean samples" before. The q-value for this test (when ran along tests for all other genes) is 0.0536. Meaning, only 5.36% of tests rejected under the same conditions would be actually false discoveries. This is a positive find! 
