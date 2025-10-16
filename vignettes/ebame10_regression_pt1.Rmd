@@ -46,7 +46,7 @@ We want to identify which COGs were present more often in one type of genomes. A
 
 We actually don't need to build a pangenome to answer this question*. All we need is
 
-1. A list of the genomes that we want to include in the analysis. Here, we're going to use the external genomes file `external-genomes.txt`. (Check it out its format with `head external-genomes.txt`.)
+1. A list of the genomes that we want to include in the analysis. Here, we're going to use the external genomes file `external-genomes.txt`. (Check out its format with `head external-genomes.txt`.)
 2. The name of the file we want to save the results. I'm going to call it `enrichment-output.txt`. 
 3. The annotation source. I'm going to choose `COG14_FUNCTION`. 
 4. The groups we want to compare across. This info is contained in `layer-additional-data.txt`. 
@@ -101,8 +101,10 @@ I want to copy the column light and call it group. give me a cmd line one-liner 
 (You don't have to say thanks, but maybe we'll be less likely to turn into paperclips)
 
 ```
-awk 'BEGIN{OFS="\t"} NR==1{$(NF+1)="group"} NR>1{$(NF+1)=$3}1' layer-additional-data.txt > layer-additional-data-with-group.txt\n
+awk 'BEGIN{OFS="\t"} NR==1{$(NF+1)="group"} NR>1{$(NF+1)=$3}1' layer-additional-data.txt > layer-additional-data-with-group.txt
 ```
+
+It created a new document with the additional column (Check with `head layer-additional-data-with-group.txt`)
 
 Ok! Let's try again!
 
