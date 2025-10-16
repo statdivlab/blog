@@ -176,15 +176,18 @@ system.time({hdw_fit <- emuFit(formula = ~ exposed,
 
 Let's look at our results and talk through them together. 
 
+
 ```{r}
 hdw_fit
 ```
 
-The printed output is sorted by the largest estimated effect sizes (fold differences), but how do we look at a specific species? The way to access estimated coefficients and confidence intervals from the model is with `hdw_fit$coef`. Let's look at one, then save the estimates in a vector. 
+The printed output is sorted by the largest estimated effect sizes (fold differences), but how do we look at a specific species? The way to access estimated coefficients and confidence intervals from the model is with `hdw_fit$coef`. Let's look at one: 
 
 ```{r}
 hdw_fit$coef[52, ] 
 ```
+
+# Interpreting the results
 
 Let's interpret these results! Here's three equivalent interpretations:
 
@@ -216,7 +219,7 @@ hdw_fit$coef %>%
 
 Here we can see the distribution of log fold-difference estimates from our model, as well as 95% confidence intervals. 
 
-# Is this even reasonable?
+## Is this even reasonable?
 
 A quick check...
 
@@ -233,7 +236,7 @@ meta %>%
 ```
 
 
-# Testing
+# Hypothesis tests and p-values
 
 Now, let's talk about testing the null hypothesis that a species doesn't differ in its average abundance before vs after exposure. While its tempting to use the confidence intervals to just say "p<0.05" or "not p<0.05", there's a MUCH more reliable way. Robust score tests are the reliable option -- but they also take some time. 
 
@@ -270,17 +273,19 @@ two_robust_score_tests <- emuFit(formula = ~ exposed,
 Let's take a look at the test output.
 
 ```{r}
-two_robust_score_tests$coef[taxa_to_test, ]
+two_robust_score_tests$coef[taxa_to_test[1], "pval"]
 hdw_fit$coef[taxa_to_test, ]
 ```
 
 We do not have strong statistical evidence to conclude the fold-difference in abundance of these two taxa before and after exposure is any different than the typical fold-difference. Here's an example interpretation appropriate for a paper
 
-We estimate that the average abundance of `r hdw_fit$coef[taxa_to_test[1], "category"] %>% sub(".*s__", "", .)` in metagenomes is `r signif(1/(hdw_fit$coef[taxa_to_test[1], "estimate"] %>% exp), 2)` times greater *before* commencing dairy work, when compared to the typical fold-differences in the average abundance of taxa across these visits (95% CI `r signif(1/(hdw_fit$coef[taxa_to_test[1], "upper"] %>% exp), 2)`--`r signif(1/(hdw_fit$coef[taxa_to_test[1], "lower"] %>% exp), 2)`). 
+We estimate that the average abundance of `r hdw_fit$coef[taxa_to_test[1], "category"] %>% sub(".*s__", "", .)` in metagenomes is `r signif(1/(hdw_fit$coef[taxa_to_test[1], "estimate"] %>% exp), 2)` times greater *before* commencing dairy work, when compared to the typical fold-differences in the average abundance of taxa across these visits (95% CI `r signif(1/(hdw_fit$coef[taxa_to_test[1], "upper"] %>% exp), 2)`--`r signif(1/(hdw_fit$coef[taxa_to_test[1], "lower"] %>% exp), 2)`; $p = $`r signif(two_robust_score_tests$coef[taxa_to_test[1], "pval"], 2)`). 
 
-In many data analyses, we'd like to run reliable tests for all taxa that we have measured. We could run robust score tests for every taxon in this analysis, but it will take a long time to run all tests serially. They can easily be run in parallel on a computing cluster (for example, if you are in a VM!). 
+In many data analyses, we'd like to run tests for all taxa that we have measured. We could run robust score tests for every taxon in this analysis, but it will take a long time to run all tests serially. They can easily be run in parallel on a computing cluster (for example, if you are in a VM!). 
 
-We show you how this looks in the following chunk. DO NOT RUN UNLESS YOU HAVE THE TIME!
+We show you how this might look in the following chunk. There's a full vignette [here](https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html). 
+
+DO NOT RUN THIS UNLESS YOU HAVE THE TIME AND COMPUTING RESOURCES!
 
 ```{r, eval = FALSE}
 ncores = parallel::detectCores() - 1
@@ -328,7 +333,7 @@ if (!is.null(score_res)) {
 By the way -- running this many tests is quite reasonable, but the computation time increases as the number of predictors and number of taxa increases. When you need it, the package `fastEmu` will be ready for you <3 We recommend using `fastEmu` over `radEmu` when running differential abundance analyses for very large data sets. That said, you do need to choose a reference set to use `fastEmu`, which makes the interpretation of parameter estimates less intuitive than for `radEmu`. If you find that `radEmu` is taking too long for your differential abundance analysis, consider trying `fastEmu`!  
 
 
-## Conclusions 
+# A quick constrast with other methods
 
 `radEmu` isn't the only differential abundance method. Some other popular alternatives include `ALDEx2`, `ANCOM-BC2`, and `DESeq2`. Each of these methods (and the many differential abundance methods that we didn't consider here) have pros and cons. Here's a list of our opinions on these methods. **These critiques are data-driven, but definitely reflect our bias.** 
 

@@ -314,7 +314,7 @@ above! This code should take less than a minute to run.</p>
 <span>                  cluster <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">host_subject_id</span>,</span>
 <span>                  run_score_tests <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##    user  system elapsed </span></span>
-<span><span class="co">##  15.306   0.512  18.694</span></span></code></pre>
+<span><span class="co">##  11.527   0.322  12.342</span></span></code></pre>
 <p>Let’s look at our results and talk through them together.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hdw_fit</span></span></code></pre></div>
@@ -392,14 +392,17 @@ above! This code should take less than a minute to run.</p>
 <p>The printed output is sorted by the largest estimated effect sizes
 (fold differences), but how do we look at a specific species? The way to
 access estimated coefficients and confidence intervals from the model is
-with <code>hdw_fit$coef</code>. Let’s look at one, then save the
-estimates in a vector.</p>
+with <code>hdw_fit$coef</code>. Let’s look at one:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="fl">52</span>, <span class="op">]</span> </span></code></pre></div>
 <pre><code><span><span class="co">##      covariate                   category category_num estimate         se</span></span>
 <span><span class="co">## 52 exposedTRUE Oliverpabstia_intestinalis           52 2.411388 0.06977598</span></span>
 <span><span class="co">##      lower    upper score_stat pval</span></span>
 <span><span class="co">## 52 2.27463 2.548147         NA   NA</span></span></code></pre>
+</div>
+<div class="section level2">
+<h2 id="interpreting-the-results">Interpreting the results<a class="anchor" aria-label="anchor" href="#interpreting-the-results"></a>
+</h2>
 <p>Let’s interpret these results! Here’s three equivalent
 interpretations:</p>
 <ul>
@@ -443,10 +446,9 @@ report p-values.</strong></p>
 <p><img src="ebame10_pt3_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
 <p>Here we can see the distribution of log fold-difference estimates
 from our model, as well as 95% confidence intervals.</p>
-</div>
-<div class="section level2">
-<h2 id="is-this-even-reasonable">Is this even reasonable?<a class="anchor" aria-label="anchor" href="#is-this-even-reasonable"></a>
-</h2>
+<div class="section level3">
+<h3 id="is-this-even-reasonable">Is this even reasonable?<a class="anchor" aria-label="anchor" href="#is-this-even-reasonable"></a>
+</h3>
 <p>A quick check…</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">estimate</span><span class="op">)</span></span></code></pre></div>
@@ -491,8 +493,9 @@ from our model, as well as 95% confidence intervals.</p>
 <span><span class="co">## S214_V0A  S214_V0A   FALSE   0.00000</span></span>
 <span><span class="co">## S214_V2A  S214_V2A    TRUE   0.00000</span></span></code></pre>
 </div>
+</div>
 <div class="section level2">
-<h2 id="testing">Testing<a class="anchor" aria-label="anchor" href="#testing"></a>
+<h2 id="hypothesis-tests-and-p-values">Hypothesis tests and p-values<a class="anchor" aria-label="anchor" href="#hypothesis-tests-and-p-values"></a>
 </h2>
 <p>Now, let’s talk about testing the null hypothesis that a species
 doesn’t differ in its average abundance before vs after exposure. While
@@ -532,13 +535,8 @@ parameters (in <code>hdw_fit$B</code>) that we want to test.</li>
 <span>                                 compute_cis <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> </span></code></pre></div>
 <p>Let’s take a look at the test output.</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">two_robust_score_tests</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="va">taxa_to_test</span>, <span class="op">]</span></span></code></pre></div>
-<pre><code><span><span class="co">##       covariate                category category_num  estimate lower upper</span></span>
-<span><span class="co">## 134 exposedTRUE Clostridium_sp900543325          134 -2.158088    NA    NA</span></span>
-<span><span class="co">## 372 exposedTRUE Clostridium_sp000435835          372  2.298507    NA    NA</span></span>
-<span><span class="co">##     score_stat      pval</span></span>
-<span><span class="co">## 134   1.541493 0.2143957</span></span>
-<span><span class="co">## 372   1.052940 0.3048309</span></span></code></pre>
+<code class="sourceCode R"><span><span class="va">two_robust_score_tests</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="va">taxa_to_test</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="st">"pval"</span><span class="op">]</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.2143957</span></span></code></pre>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="va">taxa_to_test</span>, <span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">##       covariate                category category_num  estimate        se</span></span>
@@ -554,14 +552,15 @@ interpretation appropriate for a paper</p>
 <p>We estimate that the average abundance of Clostridium_sp900543325 in
 metagenomes is 8.7 times greater <em>before</em> commencing dairy work,
 when compared to the typical fold-differences in the average abundance
-of taxa across these visits (95% CI 1.1–65).</p>
-<p>In many data analyses, we’d like to run reliable tests for all taxa
-that we have measured. We could run robust score tests for every taxon
-in this analysis, but it will take a long time to run all tests
-serially. They can easily be run in parallel on a computing cluster (for
-example, if you are in a VM!).</p>
-<p>We show you how this looks in the following chunk. DO NOT RUN UNLESS
-YOU HAVE THE TIME!</p>
+of taxa across these visits (95% CI 1.1–65; $p = $0.21).</p>
+<p>In many data analyses, we’d like to run tests for all taxa that we
+have measured. We could run robust score tests for every taxon in this
+analysis, but it will take a long time to run all tests serially. They
+can easily be run in parallel on a computing cluster (for example, if
+you are in a VM!).</p>
+<p>We show you how this might look in the following chunk. There’s a
+full vignette <a href="https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html" class="external-link">here</a>.</p>
+<p>DO NOT RUN THIS UNLESS YOU HAVE THE TIME AND COMPUTING RESOURCES!</p>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ncores</span> <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span>
 <span><span class="va">emuTest</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">category</span><span class="op">)</span> <span class="op">{</span></span>
@@ -613,9 +612,10 @@ to use <code>fastEmu</code>, which makes the interpretation of parameter
 estimates less intuitive than for <code>radEmu</code>. If you find that
 <code>radEmu</code> is taking too long for your differential abundance
 analysis, consider trying <code>fastEmu</code>!</p>
-<div class="section level3">
-<h3 id="conclusions">Conclusions<a class="anchor" aria-label="anchor" href="#conclusions"></a>
-</h3>
+</div>
+<div class="section level2">
+<h2 id="a-quick-constrast-with-other-methods">A quick constrast with other methods<a class="anchor" aria-label="anchor" href="#a-quick-constrast-with-other-methods"></a>
+</h2>
 <p><code>radEmu</code> isn’t the only differential abundance method.
 Some other popular alternatives include <code>ALDEx2</code>,
 <code>ANCOM-BC2</code>, and <code>DESeq2</code>. Each of these methods
@@ -687,7 +687,6 @@ poorly/weirdly</li>
 information and more practice using them. Although this example uses a
 single binary covariate, each of these methods can be run with more
 complex regression models.</p>
-</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
