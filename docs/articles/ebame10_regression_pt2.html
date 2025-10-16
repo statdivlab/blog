@@ -127,7 +127,7 @@ in the high/low light data.</p>
 double-check you replaced the directory address correctly.</p>
 </div>
 <div class="section level2">
-<h2 id="asking-mv-to-clean-up-the-mess-that-is-below-this">Asking MV to clean up the mess that is below this :)<a class="anchor" aria-label="anchor" href="#asking-mv-to-clean-up-the-mess-that-is-below-this"></a>
+<h2 id="wrangling-the-data-out-of-anvio-and-into-r">Wrangling the data out of anvi’o and into R<a class="anchor" aria-label="anchor" href="#wrangling-the-data-out-of-anvio-and-into-r"></a>
 </h2>
 <p>Our first step is to extract and format our data to something R
 likes. We will do this in a few steps.</p>
@@ -206,6 +206,10 @@ the columns “clade” and “light” with <code>inner_join</code>.</li>
 and all the genes, with a 1 in “presence” if the gene is in the sample,
 and 0 if it is missing, and with information on the sample by having
 “clade” and “light”.</p>
+</div>
+<div class="section level2">
+<h2 id="modelling-gene-presence">Modelling gene presence<a class="anchor" aria-label="anchor" href="#modelling-gene-presence"></a>
+</h2>
 <p>We are ready for some modeling!!</p>
 <p>We will be employing the library raoBust, which implements
 generalized linear models, along with robust score test. You may need to
@@ -241,6 +245,11 @@ above for each. This may take a few minutes!</p>
 <span>             <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cog <span class="op">=</span> <span class="va">.y</span><span class="op">)</span>,</span>
 <span>           .id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/relocate.html" class="external-link">relocate</a></span><span class="op">(</span><span class="va">cog</span><span class="op">)</span></span></code></pre>
+</div>
+<div class="section level2">
+<h2 id="interpreting-the-results">Interpreting the results<a class="anchor" aria-label="anchor" href="#interpreting-the-results"></a>
+</h2>
+<p>TODO(AW) needs to elaborate on this</p>
 <p>Now, look at the results! We can do this in several ways like:</p>
 <ol style="list-style-type: decimal">
 <li>Directly looking at the estimated numbers!</li>

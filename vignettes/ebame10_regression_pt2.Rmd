@@ -54,7 +54,7 @@ meta <- read_tsv(paste0(dir, "layer-additional-data.txt"))
 
 Note: If you get the message `Error: '/.../...layer-additional-data.txt' does not exist.`, double-check you replaced the directory address correctly.
 
-# Asking MV to clean up the mess that is below this :)
+# Wrangling the data out of anvi'o and into R
 
 Our first step is to extract and format our data to something R likes. We will do this in a few steps.
 
@@ -117,6 +117,8 @@ genes_long <- what_is_there %>%
 
 "genes_long" is now a table that contains a list of all the samples and all the genes, with a 1 in "presence" if the gene is in the sample, and 0 if it is missing, and with information on the sample by having "clade" and "light". 
 
+# Modelling gene presence
+
 We are ready for some modeling!! 
 
 We will be employing the library raoBust, which implements generalized linear models, along with robust score test. You may need to install it if you haven't. 
@@ -155,8 +157,7 @@ cog_fns %>%
 
 Ok, how do we run this at scale? 
 
-For this we can create a table for each gene (using `group_split` based in the column cog),
-and running the model above for each. This may take a few minutes! 
+For this we can create a table for each gene (using `group_split` based in the column cog), and running the model above for each. This may take a few minutes! 
 
 ```
 coefs <- genes_long %>%
@@ -168,6 +169,10 @@ coefs <- genes_long %>%
            .id = NULL) %>%
   relocate(cog)
 ```
+
+# Interpreting the results
+
+TODO(AW) needs to elaborate on this
 
 Now, look at the results! We can do this in several ways like: 
 
