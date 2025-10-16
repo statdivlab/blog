@@ -122,7 +122,6 @@ Ok, how do we run this at scale?
 ```
 coefs <- genes_long %>%
   group_split(cog) %>%
-  head %>% 
   set_names(map_chr(., ~ unique(.x$cog))) %>%
   map(~ glm_test(presence ~ light, data = .x, family = binomial(link = "logit"))$coef) %>%
   imap_dfr(~ as_tibble(.x, rownames = "term") |>
