@@ -35,7 +35,7 @@ The metadata is from SRA. Let's read it in, and remove all columns that are iden
 
 
 ```{r}
-meta <- read.table("data/metadata.tsv", header = TRUE, row.names = 1) %>% 
+meta <- read.table("../data/hdw_metadata.tsv", header = TRUE, row.names = 1) %>% 
   as_tibble %>% 
   dplyr::select(where(~ n_distinct(.) > 1))
 meta
@@ -67,7 +67,7 @@ To run `radEmu`, we need a table with samples in the rows, taxa in the columns, 
 Here's how you can do that (you can go through this slowly in your own time, and adapt it to your own data). We remove some negative control data; it's not useful for us here. 
 
 ```{r, message=FALSE}
-coverages <- list.files("data/11_MGX_TAXONOMY/",pattern = "^S.*txt", full.names = T) %>% 
+coverages <- list.files("../data/11_MGX_TAXONOMY/",pattern = "^S.*txt", full.names = T) %>% 
   lapply(FUN = read_tsv) %>% 
   bind_rows() %>%
   separate(scg_name, sep = "_", into = c("sample_profile_db", NA, "marker", "strain")) %>% 
@@ -248,7 +248,7 @@ to test.
 
 This should take about a minute to run on the RStudio server. 
 
-```{r}
+```{r, message=FALSE}
 taxa_to_test <- c(134, 372)
 covariate_to_test <- which("exposedTRUE" == hdw_fit$B %>% rownames)
 two_robust_score_tests <- emuFit(formula = ~ exposed,
@@ -301,6 +301,7 @@ if (.Platform$OS.type != "windows" & !identical(Sys.getenv("GITHUB_ACTIONS"), "t
                       mc.cores = ncores)
 } else {
   # don't run if we are on a Windows machine, or if testing with GitHub actions
+  # You can do it! You just would need a different setup. Please reach out!
   score_res <- NULL
 }
 
