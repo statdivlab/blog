@@ -27,7 +27,15 @@ library(tidyverse)
 library(radEmu)
 ```
 
-# Loading metadata
+This is optional, but helpful to make some R packages be friends
+
+```{r}
+select <- dplyr::select
+```
+
+# Downloading and reading in metadata
+
+You can download the data [here](https://github.com/statdivlab/presentations/tree/main/ebame10/afternoon_data). 
 
 The metadata is from SRA. Let's read it in, and remove all columns that are identical for all samples.  
 
@@ -35,7 +43,7 @@ The metadata is from SRA. Let's read it in, and remove all columns that are iden
 ```{r}
 meta <- read.table("../data/hdw_metadata.tsv", header = TRUE, row.names = 1) %>% 
   as_tibble %>% 
-  dplyr::select(where(~ n_distinct(.) > 1))
+  select(where(~ n_distinct(.) > 1))
 head(meta)
 ```
 
@@ -69,11 +77,11 @@ coverages_all <- list.files("../data/11_MGX_TAXONOMY/",pattern = "^S.*txt", full
   lapply(FUN = read_tsv) %>% 
   bind_rows() %>%
   separate(scg_name, sep = "_", into = c("sample_profile_db", NA, "marker", "strain")) %>% 
-  dplyr::select(-percent_identity, -marker, -strain, -NEG_UWTrinh_BS_0001_F05, -NEG_UWTrinh_BS_0001_H05) %>% 
+  select(-percent_identity, -marker, -strain, -NEG_UWTrinh_BS_0001_F05, -NEG_UWTrinh_BS_0001_H05) %>% 
   pivot_longer(S200_V00:S214_V2B, 
                names_to = "sample_coverage", values_to = "coverage") %>% 
   filter(sample_profile_db == substr(sample_coverage,1,4)) %>%
-  dplyr::select(-sample_profile_db) %>% 
+  select(-sample_profile_db) %>% 
   rename(sample = sample_coverage) %>%
   group_by(sample, t_domain, t_phylum, t_class, t_order, t_family, t_genus, t_species) %>% 
   summarise(coverage = sum(coverage)) %>%
@@ -84,7 +92,7 @@ coverages_all <- list.files("../data/11_MGX_TAXONOMY/",pattern = "^S.*txt", full
   mutate(sp_name = ifelse(t_species == "None", taxa, t_species) %>% str_replace(" ", "_"))
 
 coverages <- coverages_all %>% 
-  dplyr::select(sample, coverage, sp_name) %>%
+  select(sample, coverage, sp_name) %>%
   pivot_wider(values_from = coverage, values_fill = 0, names_from = sp_name) %>%
   column_to_rownames(var="sample") 
 ```
@@ -138,7 +146,7 @@ rownames(meta) <- meta$sample_id
 Finally, to run radEmu, we need to confirm that all species are detected in at least one sample. (Even if it was true at the beginning, we could have taxa that were only in the removed samples.)
 
 ```{r}
-coverages <- coverages %>% dplyr::select(where(~ sum(.x) != 0))
+coverages <- coverages %>% select(where(~ sum(.x) != 0))
 dim(coverages)
 ```
 
@@ -232,7 +240,7 @@ largest_diff <- hdw_fit$coef %>%
   pull(category)
 meta %>% 
   add_column(coverage = coverages[[largest_diff]]) %>% 
-  dplyr::select(sample_id, exposed, coverage)
+  select(sample_id, exposed, coverage)
 ```
 
 
@@ -322,7 +330,7 @@ if (!is.null(score_res)) {
   full_pval <- sapply(1:length(score_res), 
                       function(x) score_res[[x]]$coef$pval[x])
   full_coef <- hdw_fit$coef %>%
-    dplyr::select(-score_stat, -pval) %>%
+    select(-score_stat, -pval) %>%
     filter(category_num %in% 1:ncol(coverages)) %>%
     mutate(score_stat = full_score,
            pval = full_pval)
