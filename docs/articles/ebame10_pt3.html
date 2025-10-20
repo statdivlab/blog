@@ -111,7 +111,9 @@ don’t already have it installed.</p>
 <div class="section level2">
 <h2 id="downloading-and-reading-in-metadata">Downloading and reading in metadata<a class="anchor" aria-label="anchor" href="#downloading-and-reading-in-metadata"></a>
 </h2>
-<p>You can download the data <a href="https://github.com/statdivlab/presentations/tree/main/ebame10/afternoon_data" class="external-link">here</a>.</p>
+<p>You can download the data <a href="https://github.com/statdivlab/presentations/tree/main/ebame10/afternoon_data" class="external-link">here</a>.
+(We’ve found <a href="https://download-directory.github.io/" class="external-link">this
+website</a> to be convenient for this purpose.)</p>
 <p>The metadata is from SRA. Let’s read it in, and remove all columns
 that are identical for all samples.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -318,7 +320,7 @@ above! This code should take less than a minute to run.</p>
 <span>                  cluster <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">host_subject_id</span>,</span>
 <span>                  run_score_tests <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##    user  system elapsed </span></span>
-<span><span class="co">##  11.209   0.294  12.056</span></span></code></pre>
+<span><span class="co">##  12.264   0.346  14.009</span></span></code></pre>
 <p>Let’s look at our results and talk through them together.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hdw_fit</span></span></code></pre></div>

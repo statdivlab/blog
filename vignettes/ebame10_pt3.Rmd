@@ -35,7 +35,7 @@ select <- dplyr::select
 
 # Downloading and reading in metadata
 
-You can download the data [here](https://github.com/statdivlab/presentations/tree/main/ebame10/afternoon_data). 
+You can download the data [here](https://github.com/statdivlab/presentations/tree/main/ebame10/afternoon_data). (We've found [this website](https://download-directory.github.io/) to be convenient for this purpose.)
 
 The metadata is from SRA. Let's read it in, and remove all columns that are identical for all samples.  
 
