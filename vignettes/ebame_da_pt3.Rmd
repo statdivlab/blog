@@ -19,7 +19,7 @@ We'll illustrate its use on the the Healthy Dairy Workers dataset. We're interes
 
 First let's load libraries we'll need. Install radEmu only if you don't already have it installed. 
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
 # if (!("radEmu" %in% row.names(installed.packages()))) {
 #   remotes::install_github("statdivlab/radEmu")

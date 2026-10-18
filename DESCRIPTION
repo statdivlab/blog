@@ -1,16 +1,19 @@
 Package: blog
 Type: Package
 Title: StatDivLab Blog
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: as.person(c(
     "Amy Willis <adwillis@uw.edu> [aut, cre]", 
-    "Sarah Teichman [aut]"
+    "Sarah Teichman [aut]", 
+    "Maria Valdez [aut]"
   ))
 Description: This is a way to host a blog for the Statistical Diversity Lab. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
+Depends: 
+    tidyverse
 Suggests: 
     knitr,
     rmarkdown
