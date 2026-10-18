@@ -21,9 +21,9 @@ First let's load libraries we'll need. Install radEmu only if you don't already 
 
 ```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
-# if (!("radEmu" %in% row.names(installed.packages()))) {
-#   remotes::install_github("statdivlab/radEmu")
-# }
+if (!("radEmu" %in% row.names(installed.packages()))) {
+  remotes::install_github("statdivlab/radEmu")
+}
 library(radEmu)
 ```
 
