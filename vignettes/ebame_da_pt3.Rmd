@@ -1,7 +1,7 @@
 ---
-title: "EBAME10: Differential Abundance with anvi'o ouput"
-author: "Maria Valdez, Amy Willis"
-date: "2025-10-17"
+title: "EBAME: Differential Abundance with anvi'o ouput"
+author: "Maria Valdez, Amy D Willis"
+date: "Last updated October 18 2026"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{EBAME10: Differential Abundance with anvi'o ouput}

@@ -1,7 +1,7 @@
 ---
-title: "EBAME10: Functional enrichment in R"
+title: "EBAME: Functional enrichment in R"
 author: "Amy D Willis"
-date: "October 17 2025"
+date: "Last updated October 18 2026"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{EBAME10: Pangenomics hypothesis testing in R}
@@ -39,20 +39,22 @@ for file in *.db; do
 done
 ```
 
-
-Ok! Time to open it in R. Open your favourite interactive R editor and create a variable with the file path where the genomes DBs are (if you already forgot, you can find it with `echo "$PWD"`). Load in the high/low light data.  
-
+Before moving to R, let's put all this information in our `~/mydatalocal/` directory for easy access: 
 
 ```
+zip -r "../$(basename "$PWD").zip" . && mkdir -p ~/mydatalocal && cp "../$(basename "$PWD").zip" ~/mydatalocal/
+```
+
+
+Ok! Time to read in and analyze this data in R. Open your favourite interactive R editor. Let's load in the high/low light data:
+
+```
+## You should now be working in R/RStudio, not the terminal! 
 library(tidyverse)
 
-#Change the following dir with what you obtain with echo above.
-
-dir <- "presentations/2510-ebame/Prochlorococcus_31_genomes/"
+dir <- "~/mydatalocal/Prochlorococcus_31_genomes/"
 meta <- read_tsv(paste0(dir, "layer-additional-data.txt"))
 ```
-
-Note: If you get the message `Error: '/.../...layer-additional-data.txt' does not exist.`, double-check you replaced the directory address correctly.
 
 # Wrangling the data out of anvi'o and into R
 
@@ -124,6 +126,7 @@ We are ready for some modeling!!
 We will be employing the library raoBust, which implements generalized linear models, along with robust score test. You may need to install it if you haven't. 
 
 ```
+install.packages("remotes")
 remotes::install_github("statdivlab/raoBust")
 
 library(raoBust)
