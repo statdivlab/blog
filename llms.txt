@@ -32,7 +32,7 @@ Associate Professor of Biostatistics, University of Washington
   [pangenomics testing in
   R](https://statdivlab.github.io/blog/articles/ebame_regression_pt2.html)
   and [differential
-  abundance](https://statdivlab.github.io/blog/articles/ebame_pt3.html)
+  abundance](https://statdivlab.github.io/blog/articles/ebame_da_pt3.html)
 - [Papers Need Friends: Extension
   Spaces](https://statdivlab.github.io/blog/articles/pnf_extn_spaces.html)
 - [Papers Need Friends:
