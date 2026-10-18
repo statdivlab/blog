@@ -265,7 +265,7 @@ Now, let's talk about testing the null hypothesis that a species doesn't differ 
 
 Real talk -- there's a *perfect* way to get these p-values, and there's a *very good but way faster* way. The faster way is what we'll show you here, and uses the package `fastEmu`. (The perfect way is with `radEmu`.) On this dataset, the speedup was $\approx 13 \times$ and the average difference was $<2$% (based on a random sample of 25 taxa).
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 
 if (!("fastEmu" %in% row.names(installed.packages()))) {
   remotes::install_github("statdivlab/fastEmu")

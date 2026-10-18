@@ -19,7 +19,7 @@ Associate Professor of Biostatistics, University of Washington
 
 **Selected blog posts** (you can see the full list under "Articles"):
 
-- EBAME tutorials: [pangenomics testing in anvi'o](https://statdivlab.github.io/blog/articles/ebame_regression_pt1.html), [pangenomics testing in R](https://statdivlab.github.io/blog/articles/ebame_regression_pt2.html) and [differential abundance](https://statdivlab.github.io/blog/articles/ebame_pt3.html)
+- EBAME tutorials: [pangenomics testing in anvi'o](https://statdivlab.github.io/blog/articles/ebame_regression_pt1.html), [pangenomics testing in R](https://statdivlab.github.io/blog/articles/ebame_regression_pt2.html) and [differential abundance](https://statdivlab.github.io/blog/articles/ebame_da_pt3.html)
 - [Papers Need Friends: Extension Spaces](https://statdivlab.github.io/blog/articles/pnf_extn_spaces.html)
 - [Papers Need Friends: radEmu](https://statdivlab.github.io/blog/articles/pnf_radEmu.html)
 
