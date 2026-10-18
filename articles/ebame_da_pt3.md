@@ -27,17 +27,6 @@ library(tidyverse)
 if (!("radEmu" %in% row.names(installed.packages()))) {
   remotes::install_github("statdivlab/radEmu")
 }
-```
-
-    ## * checking for file ‘/tmp/RtmpX55LkE/remotes1b66367a4f7/statdivlab-radEmu-eb2d6c5/DESCRIPTION’ ... OK
-    ## * preparing ‘radEmu’:
-    ## * checking DESCRIPTION meta-information ... OK
-    ## * checking for LF line-endings in source and make files and shell scripts
-    ## * checking for empty or unneeded directories
-    ## * building ‘radEmu_2.4.0.0.tar.gz’
-
-``` r
-
 library(radEmu)
 ```
 
@@ -312,7 +301,7 @@ system.time({hdw_fit <- emuFit(formula = ~ exposed,
 ```
 
     ##    user  system elapsed 
-    ##   1.791   0.013   1.802
+    ##   1.802   0.017   1.819
 
 Let’s look at our results and talk through them together.
 

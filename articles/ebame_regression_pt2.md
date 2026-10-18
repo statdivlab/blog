@@ -104,8 +104,8 @@ How many distinct accession-function combinations we obtained?
 Now, we finish by constructing the table of gene presence/absence with a
 useful format for the regression model we will fit later.
 
-In the following code we construct our table “genes_long” from
-“what_is_there” by:
+In the following code we construct our table `genes_long` from
+`what_is_there` by:
 
 1.  Add a column called “presence” full of 1’s with `mutate` (this
     eventually will indicate the gene in that row is present in the
@@ -136,7 +136,7 @@ In the following code we construct our table “genes_long” from
       pivot_longer(!sample,names_to = "cog", values_to = "presence") %>% 
       inner_join(meta, by = c("sample" = "isolate")) 
 
-“genes_long” is now a table that contains a list of all the samples and
+`genes_long` is now a table that contains a list of all the samples and
 all the genes, with a 1 in “presence” if the gene is in the sample, and
 0 if it is missing, and with information on the sample by having “clade”
 and “light”.
@@ -145,8 +145,8 @@ and “light”.
 
 We are ready for some modeling!!
 
-We will be employing the library raoBust, which implements generalized
-linear models, along with robust score test. You may need to install it
+We will be employing the library `raoBust`, which implements generalized
+linear models, along with robust score tests. You may need to install it
 if you haven’t.
 
     install.packages("remotes")
@@ -158,7 +158,8 @@ Let’s start with a small case and turn our attention to the gene with
 accession “COG4251”, because as shown by
 
     cog_fns %>%
-      filter(accession == "COG4251") 
+      filter(accession == "COG4251") %>% 
+      pull(cog_function)
 
 this gene codes for a light-sensitive protein. Thus, we would expect the
 odds of it being present in a sample will be different in samples
@@ -176,10 +177,11 @@ What do we observe in the output? Is the estimate positive or negative?
 Does it appear to be a significant signal (per the Robust Score
 p-value)?
 
-Take note of these things for now and contrast them with what we obtain
-when exploring the presence/absence of a different gene. Let’s explore
-the difference in the odd of presence of the gene with accession
-“COG0592”.
+Take note of these things for now. We’ll contrast them with what we
+obtain when exploring the presence/absence of a different gene.
+
+Let’s explore the difference in the odd of presence of the gene with
+accession “COG0592”.
 
     genes_long %>%
       filter(cog == "COG0592") %>%
@@ -213,9 +215,9 @@ your paper:
 We estimate the odds of the gene “COG4251” being present in a low-light
 ocean sample is 9.8^{-10} times lower than the odds of the same gene
 being present in a high-light ocean sample (95% CI \[2.9^{-10} –
-3.3^{-9}\]; p = 3.32^{-03}). We have statistical evidence of a
-difference in odds of the presence of this gene between samples from
-low-light ocean areas and samples from high-light ocean areas.
+3.3^{-9}\]; p = 3.32^{-03}). We have strong evidence of a difference in
+odds of the presence of this gene between samples from low-light ocean
+areas and samples from high-light ocean areas.
 
 The values reported above where obtained by computing the exponential of
 the estimates and the confidence interval limits (for example,
@@ -326,5 +328,5 @@ We rejected the null hypothesis “The odds of the gene with accession
 COG4251 being present in low-light ocean samples are the same as the
 odds of the gene being present in samples from high-light ocean samples”
 before. The q-value for this test (when ran along tests for all other
-genes) is 0.0536. Meaning, only 5.36% of tests rejected under the same
-conditions would be actually false discoveries. This is a positive find!
+genes) is 0.0536. That is, only 5.36% of tests rejected under the same
+conditions would be actually false discoveries.

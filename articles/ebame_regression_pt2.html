@@ -169,8 +169,8 @@ functions.</p>
 <code>dim(cog_fns)</code></p>
 <p>Now, we finish by constructing the table of gene presence/absence
 with a useful format for the regression model we will fit later.</p>
-<p>In the following code we construct our table “genes_long” from
-“what_is_there” by:</p>
+<p>In the following code we construct our table <code>genes_long</code>
+from <code>what_is_there</code> by:</p>
 <ol style="list-style-type: decimal">
 <li>Add a column called “presence” full of 1’s with <code>mutate</code>
 (this eventually will indicate the gene in that row is present in the
@@ -200,18 +200,18 @@ the columns “clade” and “light” with <code>inner_join</code>.</li>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>values_from <span class="op">=</span> <span class="va">presence</span>, values_fill <span class="op">=</span> <span class="fl">0</span>, names_from <span class="op">=</span> <span class="va">accession</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span><span class="op">!</span><span class="va">sample</span>,names_to <span class="op">=</span> <span class="st">"cog"</span>, values_to <span class="op">=</span> <span class="st">"presence"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">inner_join</a></span><span class="op">(</span><span class="va">meta</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sample"</span> <span class="op">=</span> <span class="st">"isolate"</span><span class="op">)</span><span class="op">)</span> </span></code></pre>
-<p>“genes_long” is now a table that contains a list of all the samples
-and all the genes, with a 1 in “presence” if the gene is in the sample,
-and 0 if it is missing, and with information on the sample by having
-“clade” and “light”.</p>
+<p><code>genes_long</code> is now a table that contains a list of all
+the samples and all the genes, with a 1 in “presence” if the gene is in
+the sample, and 0 if it is missing, and with information on the sample
+by having “clade” and “light”.</p>
 </div>
 <div class="section level2">
 <h2 id="modelling-gene-presence">Modelling gene presence<a class="anchor" aria-label="anchor" href="#modelling-gene-presence"></a>
 </h2>
 <p>We are ready for some modeling!!</p>
-<p>We will be employing the library raoBust, which implements
-generalized linear models, along with robust score test. You may need to
-install it if you haven’t.</p>
+<p>We will be employing the library <code>raoBust</code>, which
+implements generalized linear models, along with robust score tests. You
+may need to install it if you haven’t.</p>
 <pre><code><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"statdivlab/raoBust"</span><span class="op">)</span></span>
 <span></span>
@@ -219,7 +219,8 @@ install it if you haven’t.</p>
 <p>Let’s start with a small case and turn our attention to the gene with
 accession “COG4251”, because as shown by</p>
 <pre><code><span><span class="va">cog_fns</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">accession</span> <span class="op">==</span> <span class="st">"COG4251"</span><span class="op">)</span> </span></code></pre>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">accession</span> <span class="op">==</span> <span class="st">"COG4251"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">cog_function</span><span class="op">)</span></span></code></pre>
 <p>this gene codes for a light-sensitive protein. Thus, we would expect
 the odds of it being present in a sample will be different in samples
 collected with high or low light. How can we learn if this is the
@@ -233,10 +234,10 @@ are looking for.</p>
 <p>What do we observe in the output? Is the estimate positive or
 negative? Does it appear to be a significant signal (per the Robust
 Score p-value)?</p>
-<p>Take note of these things for now and contrast them with what we
-obtain when exploring the presence/absence of a different gene. Let’s
-explore the difference in the odd of presence of the gene with accession
-“COG0592”.</p>
+<p>Take note of these things for now. We’ll contrast them with what we
+obtain when exploring the presence/absence of a different gene.</p>
+<p>Let’s explore the difference in the odd of presence of the gene with
+accession “COG0592”.</p>
 <pre><code><span><span class="va">genes_long</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">cog</span> <span class="op">==</span> <span class="st">"COG0592"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu">glm_test</span><span class="op">(</span><span class="va">presence</span> <span class="op">~</span> <span class="va">light</span>, data <span class="op">=</span> <span class="va">.</span>,</span>
@@ -263,9 +264,9 @@ in your paper:</p>
 <p>We estimate the odds of the gene “COG4251” being present in a
 low-light ocean sample is 9.8^{-10} times lower than the odds of the
 same gene being present in a high-light ocean sample (95% CI [2.9^{-10}
-– 3.3^{-9}]; p = 3.32^{-03}). We have statistical evidence of a
-difference in odds of the presence of this gene between samples from
-low-light ocean areas and samples from high-light ocean areas.</p>
+– 3.3^{-9}]; p = 3.32^{-03}). We have strong evidence of a difference in
+odds of the presence of this gene between samples from low-light ocean
+areas and samples from high-light ocean areas.</p>
 <p>The values reported above where obtained by computing the exponential
 of the estimates and the confidence interval limits (for example,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>e</mi><mrow><mi>−</mi><mn>20.74839</mn></mrow></msup><mo>=</mo></mrow><annotation encoding="application/x-tex">e^{-20.74839} =</annotation></semantics></math>
@@ -363,9 +364,8 @@ which we found significant in the previous section?</p>
 COG4251 being present in low-light ocean samples are the same as the
 odds of the gene being present in samples from high-light ocean samples”
 before. The q-value for this test (when ran along tests for all other
-genes) is 0.0536. Meaning, only 5.36% of tests rejected under the same
-conditions would be actually false discoveries. This is a positive
-find!</p>
+genes) is 0.0536. That is, only 5.36% of tests rejected under the same
+conditions would be actually false discoveries.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
