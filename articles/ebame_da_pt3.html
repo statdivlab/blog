@@ -85,27 +85,25 @@ Amy D Willis</h4>
 </h2>
 <p>This lab covers “differential abundance” using metagenomics data,
 emphasizing using the outputs of anvi’o’s
-<code>anvi-estimate-scg-taxonomy</code> function. You could probably
-adapt it to work with <code>anvi-profile-blitz</code>… let us know if
-you want that!</p>
+<code>anvi-estimate-scg-taxonomy</code> function.</p>
 <p>It specifically covers the differential abundance method
 <code>radEmu</code>. We like this method because it estimates changes in
 the “absolute abundance” of microbial taxa, even without absolute
 quantification data. Here, “absolute abundance” could be interpreted on
 the cell count, cell concentration or DNA concentration scale. Yes! It’s
-true! (We talked about this in lecture.)</p>
+true! (We talked about it in lecture.)</p>
 <p>We’ll illustrate its use on the the Healthy Dairy Workers dataset.
 We’re interested in estimating changes in microbial abundances
 <em>before</em> versus <em>after</em> commencing dairy work.</p>
-<p>First let’s load libraries we’ll need. Install radEmu only if you
-don’t already have it installed.</p>
+<p>First let’s load libraries we’ll need. Install <code>radEmu</code>
+only if you don’t already have it installed.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="op">(</span><span class="st">"radEmu"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/row.names.html" class="external-link">row.names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html" class="external-link">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"statdivlab/radEmu"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/statdivlab/radEmu" class="external-link">radEmu</a></span><span class="op">)</span></span></code></pre></div>
-<p>This is optional, but helpful to make some R packages be friends</p>
+<p>This is optional, but helpful to make some R packages be friends:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">select</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="va"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span></span></code></pre></div>
 </div>
@@ -160,21 +158,26 @@ to give you? I did coassemblies within subject, then ran
 <code>anvi-run-scg-taxonomy</code> on each of my contigs databases. From
 there, I estimated the taxonomy as follows:</p>
 <pre><code>for file in 03_CONTIGS/*-contigs.db; do
-    base=$(basename "$file" -contigs.db)
-    profile="06_MERGED/${base}/PROFILE.db"
-    output="11_MGX_TAXONOMY/${base}_S2.txt"
-    anvi-estimate-scg-taxonomy -c $file -p $profile --compute-scg-coverages --metagenome-mode -o $output --scg-name-for-metagenome-mode Ribosomal_S2
+  base=$(basename "$file" -contigs.db)
+  profile="06_MERGED/${base}/PROFILE.db"
+  output="11_MGX_TAXONOMY/${base}_S2.txt"
+  anvi-estimate-scg-taxonomy -c $file -p $profile --compute-scg-coverages --metagenome-mode -o $output --scg-name-for-metagenome-mode Ribosomal_S2
 done</code></pre>
 <p>You can see that these results went in a folder called
 <code>11_MGX_TAXONOMY</code>.</p>
+<p>(Side note – you could probably adapt the below tutorial to work with
+<code>anvi-profile-blitz</code>. If you’re using <code>blitz</code> and
+want to do differential abundance, let us know and we’ll expand this
+tutorial!)</p>
 <p>To run <code>radEmu</code>, we need a table with samples in the rows,
 taxa in the columns, and entries corresponding to the coverages of each
 taxon in each sample. So, we have to turn this data into that form.
 We’re going to aggregate at the species level (i.e., we will sum the
 coverage of different strains within the same species).</p>
 <p>Here’s how you can do that (you can go through this slowly in your
-own time, and adapt it to your own data). We remove some negative
-control data; it’s not useful for us here.</p>
+own time, and adapt it to your own data). We also remove the negative
+control samples, which are not useful for differential abundance (but
+useful for many other things!).</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">coverages_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="st">"../data/11_MGX_TAXONOMY/"</span>,pattern <span class="op">=</span> <span class="st">"^S.*txt"</span>, full.names <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span>FUN <span class="op">=</span> <span class="va">read_tsv</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
@@ -230,9 +233,9 @@ retain only one. For this, we will remove all samples labelled with a
 <p>Remember that we’re interested in estimating fold-changes in
 microbial abundances before compared to after commencing dairy work. So,
 we will create a variable called <code>exposed</code>, which will
-differentiate between samples collected at baseline (FALSE: very first
-sample collected for each host) and those collected after exposure
-(TRUE: samples collected subsequently).</p>
+differentiate between samples collected <em>at baseline</em> (FALSE:
+very first sample collected for each host) and those collected <em>after
+exposure</em> (TRUE: samples collected subsequently).</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">meta</span> <span class="op">&lt;-</span> <span class="va">meta</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/rownames.html" class="external-link">rownames_to_column</a></span><span class="op">(</span><span class="st">"Rownames"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -316,12 +319,15 @@ whether or not to run score tests.</li>
 above! This code should take less than a minute to run.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span><span class="va">hdw_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://statdivlab.github.io/radEmu/reference/emuFit.html" class="external-link">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">exposed</span>,</span>
-<span>                  data <span class="op">=</span> <span class="va">meta</span>,</span>
-<span>                  Y <span class="op">=</span> <span class="va">coverages</span>,</span>
-<span>                  cluster <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">host_subject_id</span>,</span>
-<span>                  run_score_tests <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<span>                               data <span class="op">=</span> <span class="va">meta</span>,</span>
+<span>                               Y <span class="op">=</span> <span class="va">coverages</span>,</span>
+<span>                               cluster <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">host_subject_id</span>,</span>
+<span>                               run_score_tests <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##    user  system elapsed </span></span>
-<span><span class="co">##   1.802   0.017   1.819</span></span></code></pre>
+<span><span class="co">##   1.853   0.014   1.867</span></span></code></pre>
+<p>Less than a minute?! Two seconds – woohoo! (Props to Sarah Teichman
+for a lot of amazing improvements to the estimation algorithm during
+2025 that made this possible.)</p>
 <p>Let’s look at our results and talk through them together.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hdw_fit</span></span></code></pre></div>
@@ -413,11 +419,18 @@ with <code>hdw_fit$coef</code>. Let’s look at one:</p>
 <p>Let’s interpret these results! Here’s three equivalent
 interpretations:</p>
 <ul>
-<li>We estimate that the average abundance of Oliverpabstia_intestinalis
-in metagenomes is 11 times greater after commencing dairy work, when
-compared to the typical fold-differences in the average abundance of
-taxa across these visits. (Yep – that’s a <em>ratio</em> of
-<em>ratios</em>.)</li>
+<li>
+<p>We estimate that the average abundance of
+Oliverpabstia_intestinalis in metagenomes is 11 times greater after
+commencing dairy work, when compared to the typical fold-differences in
+the average abundance of taxa across these visits. (Yep – that’s a
+<em>ratio</em> of <em>ratios</em>.)</p>
+<ul>
+<li>Where did 11 come from? It’s
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mo>≈</mo><mn>2.718282</mn></mrow><annotation encoding="application/x-tex">e \approx 2.718282</annotation></semantics></math>
+raised to the power of 2.4</li>
+</ul>
+</li>
 </ul>
 <!-- - We estimate that the abundance of *Oliverpabstia intestinalis* in metagenomes from subsequent visits is $e^{2.41} = 11.13$ times greater than those from the baseline, when compared to the typical fold-differences in the abundance of taxa across these visits. (Yep -- that's a *ratio* of *ratios*.) --><ul>
 <li><p>We estimate that the log-fold difference in the average abundance
@@ -430,16 +443,15 @@ abundance between visits post and prior exposure, we estimate that the
 abundance of Oliverpabstia_intestinalis in metagenomes from post
 exposure visits is 11 times greater than prior exposure visits.</p></li>
 </ul>
-<p>By default <code>radEmu</code> compares the log fold difference in
+<p>By default, <code>radEmu</code> compares the log-fold difference in
 one taxon to the <em>typical</em> (approximately the median) log fold
-difference in all taxa. However, <code>radEmu</code> can estimate other
-types of parameters. For example, we can compare log fold differences to
-the log fold difference for a specific (or reference) taxon. <a href="https://statdivlab.github.io/radEmu/articles/radEmu_with_reference_taxon.html" class="external-link">This
-vignette</a> shows you how to modify your code to use a reference
-taxon.</p>
-<p><strong>Please take the time to interpret your estimates, don’t just
-report p-values.</strong></p>
-<p>Ok, that’s one taxon. Let’s look at our results.</p>
+difference in all taxa. However, <code>radEmu</code> is very flexible!
+For example, we can compare log-fold differences to the log-fold
+difference for a specific (or reference) taxon. <a href="https://statdivlab.github.io/radEmu/articles/radEmu_with_reference_taxon.html" class="external-link">This
+vignette</a> shows you how to modify your code to use a reference taxon
+(useful if you spiked-in a taxon).</p>
+<p>Ok, that’s one taxon’s fold-difference estimate. Let’s look at all
+the estimates:</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -456,7 +468,9 @@ from our model, as well as 95% confidence intervals.</p>
 <div class="section level3">
 <h3 id="is-this-even-reasonable">Is this even reasonable?<a class="anchor" aria-label="anchor" href="#is-this-even-reasonable"></a>
 </h3>
-<p>A quick check…</p>
+<p>A quick check: let’s look at the taxon with the maximum
+fold-difference, and see if the data is consistent with a large
+fold-difference.</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">estimate</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 7.558651</span></span></code></pre>
@@ -464,12 +478,12 @@ from our model, as well as 95% confidence intervals.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">estimate</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 1917.257</span></span></code></pre>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">largest_diff</span> <span class="op">&lt;-</span> <span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<code class="sourceCode R"><span><span class="va">who_largest_diff</span> <span class="op">&lt;-</span> <span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="va">tibble</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">category</span><span class="op">)</span></span>
 <span><span class="va">meta</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/add_column.html" class="external-link">add_column</a></span><span class="op">(</span>coverage <span class="op">=</span> <span class="va">coverages</span><span class="op">[[</span><span class="va">largest_diff</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/add_column.html" class="external-link">add_column</a></span><span class="op">(</span>coverage <span class="op">=</span> <span class="va">coverages</span><span class="op">[[</span><span class="va">who_largest_diff</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">sample_id</span>, <span class="va">exposed</span>, <span class="va">coverage</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##    sample_id exposed  coverage</span></span>
 <span><span class="co">## 1   S200_V00   FALSE   0.00000</span></span>
@@ -499,23 +513,58 @@ from our model, as well as 95% confidence intervals.</p>
 <span><span class="co">## 25  S213_V22    TRUE   0.00000</span></span>
 <span><span class="co">## 26  S214_V0A   FALSE   0.00000</span></span>
 <span><span class="co">## 27  S214_V2A    TRUE   0.00000</span></span></code></pre>
+<p>Wowzer!! It definitely looks like this taxon colonized a few
+participants after they began dairy work – consistent with a large and
+positive effect size. Who is it?</p>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">who_largest_diff</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "Bifidobacterium_bifidum"</span></span></code></pre>
 </div>
 </div>
 <div class="section level2">
 <h2 id="hypothesis-tests-and-p-values">Hypothesis tests and p-values<a class="anchor" aria-label="anchor" href="#hypothesis-tests-and-p-values"></a>
 </h2>
+<p><strong>In your papers, please look at and interpret your estimates,
+don’t just report p-values.</strong></p>
 <p>Now, let’s talk about testing the null hypothesis that a species
 doesn’t differ in its average abundance before vs after exposure. While
 its tempting to use the confidence intervals to just say “p&lt;0.05” or
 “not p&lt;0.05”, there’s a MUCH more reliable way. Robust score tests
 are the reliable option – but they also take some time.</p>
-<p>Let’s start by getting one p-value, then get them all.</p>
-<p>To set up this test, we can again run <code>emuFit</code>, giving it
-the fitted values that it has already found:</p>
+<p>Real talk – there’s a <em>perfect</em> way to get these p-values, and
+there’s a <em>very good but way faster</em> way. The faster way is what
+we’ll show you here, and uses the package <code>fastEmu</code>. (The
+perfect way is with <code>radEmu</code>.) On this dataset, the speedup
+was
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>13</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">\approx 13 \times</annotation></semantics></math>
+and the average difference was
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>&lt;</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">&lt;2</annotation></semantics></math>%
+(based on a random sample of 25 taxa).</p>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="op">(</span><span class="st">"fastEmu"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/row.names.html" class="external-link">row.names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html" class="external-link">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"statdivlab/fastEmu"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<pre><code><span><span class="co">## * checking for file ‘/tmp/Rtmp629lOQ/remotes1a42c09e367/statdivlab-fastEmu-bff2edb/DESCRIPTION’ ... OK</span></span>
+<span><span class="co">## * preparing ‘fastEmu’:</span></span>
+<span><span class="co">## * checking DESCRIPTION meta-information ... OK</span></span>
+<span><span class="co">## * checking for LF line-endings in source and make files and shell scripts</span></span>
+<span><span class="co">## * checking for empty or unneeded directories</span></span>
+<span><span class="co">##   NB: this package now depends on R (&gt;= 3.5.0)</span></span>
+<span><span class="co">##   WARNING: Added dependency on R &gt;= 3.5.0 because serialized objects in</span></span>
+<span><span class="co">##   serialize/load version 3 cannot be read in older versions of R.</span></span>
+<span><span class="co">##   File(s) containing such objects:</span></span>
+<span><span class="co">##     ‘fastEmu/inst/extdata/radFusTest.rds’</span></span>
+<span><span class="co">## * building ‘fastEmu_2.0.2.tar.gz’</span></span></code></pre>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">fastEmu</span><span class="op">)</span></span></code></pre></div>
+<p>Let’s start by getting <em>two</em> p-values (using one core), then
+I’ll show you how to get them <em>all</em> (in parallel).</p>
+<p>To set up this test, we run <code>fastEmuFit</code>, giving it the
+fitted values that it has already found:</p>
 <ul>
 <li>
-<code>formula</code>, <code>data</code> and <code>Y</code> are as
-before</li>
+<code>formula</code>, <code>data</code>, <code>Y</code> and
+<code>cluster</code> are as before</li>
 <li>
 <code>hdw_fit</code> is our previous fitted object (the output of
 <code>emuFit</code>)</li>
@@ -523,69 +572,92 @@ before</li>
 <code>test_kj</code> a data frame listing the indices of the
 parameters (in <code>hdw_fit$B</code>) that we want to test.</li>
 </ul>
-<p>This should take about a minute to run on the RStudio server.</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">taxa_to_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">134</span>, <span class="fl">372</span><span class="op">)</span></span>
 <span><span class="va">covariate_to_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="st">"exposedTRUE"</span> <span class="op">==</span> <span class="va">hdw_fit</span><span class="op">$</span><span class="va">B</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="va">rownames</span><span class="op">)</span></span>
-<span><span class="va">two_robust_score_tests</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://statdivlab.github.io/radEmu/reference/emuFit.html" class="external-link">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">exposed</span>,</span>
-<span>                                 data <span class="op">=</span> <span class="va">meta</span>,</span>
-<span>                                 Y <span class="op">=</span> <span class="va">coverages</span>,</span>
-<span>                                 cluster <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">host_subject_id</span>,</span>
-<span>                                 <span class="co"># we already have hdw_fit, don't recompute this </span></span>
-<span>                                 fitted_model <span class="op">=</span> <span class="va">hdw_fit</span>,</span>
-<span>                                 refit <span class="op">=</span> <span class="cn">FALSE</span>, </span>
-<span>                                 test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="va">covariate_to_test</span>,</span>
-<span>                                                      j <span class="op">=</span> <span class="va">taxa_to_test</span><span class="op">)</span>,</span>
-<span>                                 <span class="co"># have it tell you when it runs score tests</span></span>
-<span>                                 verbose <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>                                 <span class="co"># don't need to re-compute confidence intervals</span></span>
-<span>                                 compute_cis <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="va">two_robust_score_tests</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/fastEmu/man/fastEmuFit.html" class="external-link">fastEmuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">exposed</span>,</span>
+<span>                                     data <span class="op">=</span> <span class="va">meta</span>,</span>
+<span>                                     Y <span class="op">=</span> <span class="va">coverages</span>,</span>
+<span>                                     cluster <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">host_subject_id</span>,</span>
+<span>                                     fitted_model <span class="op">=</span> <span class="va">hdw_fit</span>,</span>
+<span>                                     test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="va">covariate_to_test</span>,</span>
+<span>                                                          j <span class="op">=</span> <span class="va">taxa_to_test</span><span class="op">)</span>,</span>
+<span>                                     <span class="co"># have it tell you when it runs score tests</span></span>
+<span>                                     verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> </span></code></pre></div>
 <p>Let’s take a look at the test output.</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">two_robust_score_tests</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="va">taxa_to_test</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="st">"pval"</span><span class="op">]</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.2155614</span></span></code></pre>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">hdw_fit</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="va">taxa_to_test</span>, <span class="op">]</span></span></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">two_robust_score_tests</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="va">taxa_to_test</span>, <span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">##       covariate                category category_num  estimate        se</span></span>
-<span><span class="co">## 134 exposedTRUE Clostridium_sp900543325          134 -2.158088 1.0303187</span></span>
-<span><span class="co">## 372 exposedTRUE Clostridium_sp000435835          372  2.298507 0.9054655</span></span>
-<span><span class="co">##          lower      upper score_stat pval</span></span>
-<span><span class="co">## 134 -4.1774753 -0.1387001         NA   NA</span></span>
-<span><span class="co">## 372  0.5238273  4.0731869         NA   NA</span></span></code></pre>
-<p>We do not have strong statistical evidence to conclude the
-fold-difference in abundance of these two taxa before and after exposure
-is any different than the typical fold-difference. Here’s an example
-interpretation appropriate for a paper</p>
+<span><span class="co">## 134 exposedTRUE Clostridium_sp900543325          134 -2.157053 1.0189175</span></span>
+<span><span class="co">## 372 exposedTRUE Clostridium_sp000435835          372  2.299542 0.9101272</span></span>
+<span><span class="co">##          lower      upper score_stat      pval reference_category</span></span>
+<span><span class="co">## 134 -4.1540945 -0.1600113   1.677088 0.1953118              FALSE</span></span>
+<span><span class="co">## 372  0.5157255  4.0833583   1.055472 0.3042503              FALSE</span></span></code></pre>
+<p>Based on this, we do not have strong statistical evidence to conclude
+the fold-difference in abundance of these two taxa before and after
+exposure is any different than the typical fold-difference. Here’s an
+example interpretation appropriate for a paper:</p>
 <p>We estimate that the average abundance of Clostridium_sp900543325 in
-metagenomes is 8.7 times greater <em>before</em> commencing dairy work,
+metagenomes is 8.6 times greater <em>before</em> commencing dairy work,
 when compared to the typical fold-differences in the average abundance
-of taxa across these visits (95% CI 1.1–65; $p = $0.22).</p>
+of taxa across these visits (95% CI 1.2–64; $p = $ 0.2).</p>
+<div class="section level3">
+<h3 id="testing-all-taxa-in-parallel">Testing all taxa in parallel<a class="anchor" aria-label="anchor" href="#testing-all-taxa-in-parallel"></a>
+</h3>
 <p>In many data analyses, we’d like to run tests for all taxa that we
-have measured. We could run robust score tests for every taxon in this
-analysis, but it will take a long time to run all tests serially. They
-can easily be run in parallel on a computing cluster (for example, if
-you are in a VM!).</p>
-<p>We show you how this might look in the following chunk. There’s a
-full vignette <a href="https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html" class="external-link">here</a>.</p>
-<p>DO NOT RUN THIS UNLESS YOU HAVE THE TIME AND COMPUTING RESOURCES!</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+have measured. <em>I don’t recommend running this today,</em> but I’ll
+show you how to set it up. There’s a full vignette <a href="https://statdivlab.github.io/fastEmu/articles/intro_to_fastEmu.html" class="external-link">here
+(for the <code>fastEmu</code> approach)</a> and <a href="https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html" class="external-link">here
+(for the <code>radEmu</code> approach)</a>.</p>
+<p>Here are the steps for the parallel workflow in
+<code>fastEmu</code>:</p>
+<ol start="0" style="list-style-type: decimal">
+<li>Fit the model with <code>emuFit</code> (if you haven’t already)</li>
+<li>Fix the reference taxa with <code>fastEmuFit</code> set (to keep it
+consistent across the parallel runs)</li>
+<li>Test each taxon, also with <code>fastEmuFit</code>
+</li>
+</ol>
+<p><strong>DO NOT RUN THIS UNLESS YOU HAVE THE TIME AND COMPUTING
+RESOURCES!</strong> It might take… 15 minutes on our cluster?</p>
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ncores</span> <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span>
-<span><span class="va">emuTest</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">category</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">score_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://statdivlab.github.io/radEmu/reference/emuFit.html" class="external-link">emuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">exposed</span>,</span>
-<span>                       data <span class="op">=</span> <span class="va">meta</span>,</span>
-<span>                       fitted_model <span class="op">=</span> <span class="va">hdw_fit</span>,</span>
-<span>                       refit <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                       cluster <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">host_subject_id</span>,</span>
-<span>                       test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="va">covariate_to_test</span>, </span>
-<span>                                            j <span class="op">=</span> <span class="va">category</span><span class="op">)</span>, </span>
-<span>                       Y <span class="op">=</span> <span class="va">coverages</span><span class="op">)</span></span>
+<span><span class="co">## We did Step 0 already:</span></span>
+<span><span class="co"># hdw_fit &lt;- emuFit(formula = ~ exposed,</span></span>
+<span><span class="co">#                                data = meta,</span></span>
+<span><span class="co">#                                Y = coverages,</span></span>
+<span><span class="co">#                                cluster = meta$host_subject_id,</span></span>
+<span><span class="co">#                                run_score_tests = FALSE)</span></span>
+<span></span>
+<span><span class="co">## Step 1: fix the reference taxa</span></span>
+<span><span class="va">fast_ref_set</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/fastEmu/man/fastEmuFit.html" class="external-link">fastEmuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">exposed</span>,</span>
+<span>                           data <span class="op">=</span> <span class="va">meta</span>,</span>
+<span>                           Y <span class="op">=</span> <span class="va">coverages</span>,</span>
+<span>                           cluster <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">host_subject_id</span>,</span>
+<span>                           fitted_model <span class="op">=</span> <span class="va">hdw_fit</span>,</span>
+<span>                           reference_set <span class="op">=</span> <span class="st">"data_driven"</span>, </span>
+<span>                           run_score_tests <span class="op">=</span> <span class="cn">FALSE</span>, </span>
+<span>                           verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## Step 2: Test each taxon</span></span>
+<span><span class="co">## First, create a function to deploy in parallel</span></span>
+<span><span class="va">fastEmuTest_fn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">category</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">score_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/fastEmu/man/fastEmuFit.html" class="external-link">fastEmuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">exposed</span>,</span>
+<span>                          data <span class="op">=</span> <span class="va">meta</span>, </span>
+<span>                          Y <span class="op">=</span> <span class="va">coverages</span>,</span>
+<span>                          cluster <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">host_subject_id</span>,</span>
+<span>                          fitted_model <span class="op">=</span> <span class="va">fast_ref_set</span>,</span>
+<span>                          test_kj <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>k <span class="op">=</span> <span class="va">covariate_to_test</span>, </span>
+<span>                                               j <span class="op">=</span> <span class="va">category</span><span class="op">)</span>, </span>
+<span>                           verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">score_res</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
+<span><span class="co">## Then, run the function </span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="va">.Platform</span><span class="op">$</span><span class="va">OS.type</span> <span class="op">!=</span> <span class="st">"windows"</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"GITHUB_ACTIONS"</span><span class="op">)</span>, <span class="st">"true"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co"># run if we are on a Mac or Linux machine</span></span>
 <span>  <span class="va">score_res</span> <span class="op">&lt;-</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">coverages</span><span class="op">)</span>,</span>
-<span>                      <span class="va">emuTest</span>,</span>
-<span>                      mc.cores <span class="op">=</span> <span class="va">ncores</span><span class="op">)</span></span>
+<span>                                  <span class="va">fastEmuTest_fn</span>,</span>
+<span>                                  mc.cores <span class="op">=</span> <span class="va">ncores</span><span class="op">)</span></span>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
 <span>  <span class="co"># don't run if we are on a Windows machine, or if testing with GitHub actions</span></span>
 <span>  <span class="co"># You can do it! You just would need a different setup. Please reach out!</span></span>
@@ -594,9 +666,10 @@ full vignette <a href="https://statdivlab.github.io/radEmu/articles/parallel_rad
 <span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">score_res</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">score_res</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">pval</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="co">## robust score test p-value for the first taxon</span></span>
-<span>  <span class="va">score_res</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">pval</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="co">## robust score test p-value for the second taxon</span></span>
+<span>    <span class="va">score_res</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">pval</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="co">## robust score test p-value for the second taxon</span></span>
 <span><span class="op">}</span></span>
 <span></span>
+<span><span class="co"># Now, merge the results together</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">score_res</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">full_score</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">score_res</span><span class="op">)</span>, </span>
 <span>                       <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">score_res</span><span class="op">[[</span><span class="va">x</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">score_stat</span><span class="op">[</span><span class="va">x</span><span class="op">]</span><span class="op">)</span></span>
@@ -609,16 +682,20 @@ full vignette <a href="https://statdivlab.github.io/radEmu/articles/parallel_rad
 <span>           pval <span class="op">=</span> <span class="va">full_pval</span><span class="op">)</span></span>
 <span>  <span class="va">full_coef</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p>By the way – running this many tests is quite reasonable, but the
-computation time increases as the number of predictors and number of
-taxa increases. When you need it, the package <code>fastEmu</code> will
-be ready for you &lt;3 We recommend using <code>fastEmu</code> over
-<code>radEmu</code> when running differential abundance analyses for
-very large data sets. That said, you do need to choose a reference set
-to use <code>fastEmu</code>, which makes the interpretation of parameter
-estimates less intuitive than for <code>radEmu</code>. If you find that
-<code>radEmu</code> is taking too long for your differential abundance
-analysis, consider trying <code>fastEmu</code>!</p>
+<p>By the way – running this many tests is probably quite reasonable,
+but the computation time increases as the number of predictors and
+number of taxa increases.</p>
+<p>That there are tradeoffs to using <code>fastEmu</code> – it is an
+approximate test, and the results may differ compared to the “gold
+standard” of testing with <code>radEmu</code>. I would recommend running
+fastEmu first, then re-running any particularly interesting taxa with
+radEmu. Note – if you take this approach, you <em>must</em> do false
+discovery correction on the full set of taxa you tested, not just the
+interesting subset that you re-ran!!</p>
+<p>Finally, although this example uses a single binary covariate,
+<code>radEmu</code> and <code>fastEmu</code> can be run with more
+complex regression models.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="a-quick-constrast-with-other-methods">A quick constrast with other methods<a class="anchor" aria-label="anchor" href="#a-quick-constrast-with-other-methods"></a>
@@ -691,9 +768,7 @@ poorly/weirdly</li>
 </li>
 </ul>
 <p>Check out the documentation for each of these packages for more
-information and more practice using them. Although this example uses a
-single binary covariate, each of these methods can be run with more
-complex regression models.</p>
+information and more practice using them.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

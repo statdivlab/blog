@@ -4,22 +4,21 @@
 
 This lab covers “differential abundance” using metagenomics data,
 emphasizing using the outputs of anvi’o’s `anvi-estimate-scg-taxonomy`
-function. You could probably adapt it to work with `anvi-profile-blitz`…
-let us know if you want that!
+function.
 
 It specifically covers the differential abundance method `radEmu`. We
 like this method because it estimates changes in the “absolute
 abundance” of microbial taxa, even without absolute quantification data.
 Here, “absolute abundance” could be interpreted on the cell count, cell
 concentration or DNA concentration scale. Yes! It’s true! (We talked
-about this in lecture.)
+about it in lecture.)
 
 We’ll illustrate its use on the the Healthy Dairy Workers dataset. We’re
 interested in estimating changes in microbial abundances *before* versus
 *after* commencing dairy work.
 
-First let’s load libraries we’ll need. Install radEmu only if you don’t
-already have it installed.
+First let’s load libraries we’ll need. Install `radEmu` only if you
+don’t already have it installed.
 
 ``` r
 
@@ -30,7 +29,7 @@ if (!("radEmu" %in% row.names(installed.packages()))) {
 library(radEmu)
 ```
 
-This is optional, but helpful to make some R packages be friends
+This is optional, but helpful to make some R packages be friends:
 
 ``` r
 
@@ -97,14 +96,18 @@ give you? I did coassemblies within subject, then ran
 estimated the taxonomy as follows:
 
     for file in 03_CONTIGS/*-contigs.db; do
-        base=$(basename "$file" -contigs.db)
-        profile="06_MERGED/${base}/PROFILE.db"
-        output="11_MGX_TAXONOMY/${base}_S2.txt"
-        anvi-estimate-scg-taxonomy -c $file -p $profile --compute-scg-coverages --metagenome-mode -o $output --scg-name-for-metagenome-mode Ribosomal_S2
+      base=$(basename "$file" -contigs.db)
+      profile="06_MERGED/${base}/PROFILE.db"
+      output="11_MGX_TAXONOMY/${base}_S2.txt"
+      anvi-estimate-scg-taxonomy -c $file -p $profile --compute-scg-coverages --metagenome-mode -o $output --scg-name-for-metagenome-mode Ribosomal_S2
     done
 
 You can see that these results went in a folder called
 `11_MGX_TAXONOMY`.
+
+(Side note – you could probably adapt the below tutorial to work with
+`anvi-profile-blitz`. If you’re using `blitz` and want to do
+differential abundance, let us know and we’ll expand this tutorial!)
 
 To run `radEmu`, we need a table with samples in the rows, taxa in the
 columns, and entries corresponding to the coverages of each taxon in
@@ -113,8 +116,9 @@ to aggregate at the species level (i.e., we will sum the coverage of
 different strains within the same species).
 
 Here’s how you can do that (you can go through this slowly in your own
-time, and adapt it to your own data). We remove some negative control
-data; it’s not useful for us here.
+time, and adapt it to your own data). We also remove the negative
+control samples, which are not useful for differential abundance (but
+useful for many other things!).
 
 ``` r
 
@@ -192,8 +196,8 @@ meta <- meta %>%
 Remember that we’re interested in estimating fold-changes in microbial
 abundances before compared to after commencing dairy work. So, we will
 create a variable called `exposed`, which will differentiate between
-samples collected at baseline (FALSE: very first sample collected for
-each host) and those collected after exposure (TRUE: samples collected
+samples collected *at baseline* (FALSE: very first sample collected for
+each host) and those collected *after exposure* (TRUE: samples collected
 subsequently).
 
 ``` r
@@ -294,14 +298,18 @@ above! This code should take less than a minute to run.
 ``` r
 
 system.time({hdw_fit <- emuFit(formula = ~ exposed,
-                  data = meta,
-                  Y = coverages,
-                  cluster = meta$host_subject_id,
-                  run_score_tests = FALSE)})
+                               data = meta,
+                               Y = coverages,
+                               cluster = meta$host_subject_id,
+                               run_score_tests = FALSE)})
 ```
 
     ##    user  system elapsed 
-    ##   1.802   0.017   1.819
+    ##   1.853   0.014   1.867
+
+Less than a minute?! Two seconds – woohoo! (Props to Sarah Teichman for
+a lot of amazing improvements to the estimation algorithm during 2025
+that made this possible.)
 
 Let’s look at our results and talk through them together.
 
@@ -407,6 +415,9 @@ Let’s interpret these results! Here’s three equivalent interpretations:
   compared to the typical fold-differences in the average abundance of
   taxa across these visits. (Yep – that’s a *ratio* of *ratios*.)
 
+  - Where did 11 come from? It’s $`e \approx 2.718282`$ raised to the
+    power of 2.4
+
 &nbsp;
 
 - We estimate that the log-fold difference in the average abundance of
@@ -420,18 +431,17 @@ Let’s interpret these results! Here’s three equivalent interpretations:
   of Oliverpabstia_intestinalis in metagenomes from post exposure visits
   is 11 times greater than prior exposure visits.
 
-By default `radEmu` compares the log fold difference in one taxon to the
-*typical* (approximately the median) log fold difference in all taxa.
-However, `radEmu` can estimate other types of parameters. For example,
-we can compare log fold differences to the log fold difference for a
-specific (or reference) taxon. [This
+By default, `radEmu` compares the log-fold difference in one taxon to
+the *typical* (approximately the median) log fold difference in all
+taxa. However, `radEmu` is very flexible! For example, we can compare
+log-fold differences to the log-fold difference for a specific (or
+reference) taxon. [This
 vignette](https://statdivlab.github.io/radEmu/articles/radEmu_with_reference_taxon.html)
-shows you how to modify your code to use a reference taxon.
+shows you how to modify your code to use a reference taxon (useful if
+you spiked-in a taxon).
 
-**Please take the time to interpret your estimates, don’t just report
-p-values.**
-
-Ok, that’s one taxon. Let’s look at our results.
+Ok, that’s one taxon’s fold-difference estimate. Let’s look at all the
+estimates:
 
 ``` r
 
@@ -453,7 +463,8 @@ our model, as well as 95% confidence intervals.
 
 ### Is this even reasonable?
 
-A quick check…
+A quick check: let’s look at the taxon with the maximum fold-difference,
+and see if the data is consistent with a large fold-difference.
 
 ``` r
 
@@ -471,12 +482,12 @@ exp(max(hdw_fit$coef$estimate))
 
 ``` r
 
-largest_diff <- hdw_fit$coef %>% 
+who_largest_diff <- hdw_fit$coef %>% 
   tibble %>% 
   filter(abs(estimate) == max(abs(estimate))) %>% 
   pull(category)
 meta %>% 
-  add_column(coverage = coverages[[largest_diff]]) %>% 
+  add_column(coverage = coverages[[who_largest_diff]]) %>% 
   select(sample_id, exposed, coverage)
 ```
 
@@ -509,7 +520,21 @@ meta %>%
     ## 26  S214_V0A   FALSE   0.00000
     ## 27  S214_V2A    TRUE   0.00000
 
+Wowzer!! It definitely looks like this taxon colonized a few
+participants after they began dairy work – consistent with a large and
+positive effect size. Who is it?
+
+``` r
+
+who_largest_diff
+```
+
+    ## [1] "Bifidobacterium_bifidum"
+
 ## Hypothesis tests and p-values
+
+**In your papers, please look at and interpret your estimates, don’t
+just report p-values.**
 
 Now, let’s talk about testing the null hypothesis that a species doesn’t
 differ in its average abundance before vs after exposure. While its
@@ -517,99 +542,145 @@ tempting to use the confidence intervals to just say “p\<0.05” or “not
 p\<0.05”, there’s a MUCH more reliable way. Robust score tests are the
 reliable option – but they also take some time.
 
-Let’s start by getting one p-value, then get them all.
+Real talk – there’s a *perfect* way to get these p-values, and there’s a
+*very good but way faster* way. The faster way is what we’ll show you
+here, and uses the package `fastEmu`. (The perfect way is with
+`radEmu`.) On this dataset, the speedup was $`\approx 13 \times`$ and
+the average difference was $`<2`$% (based on a random sample of 25
+taxa).
 
-To set up this test, we can again run `emuFit`, giving it the fitted
-values that it has already found:
+``` r
 
-- `formula`, `data` and `Y` are as before
+if (!("fastEmu" %in% row.names(installed.packages()))) {
+  remotes::install_github("statdivlab/fastEmu")
+}
+```
+
+    ## * checking for file ‘/tmp/Rtmp629lOQ/remotes1a42c09e367/statdivlab-fastEmu-bff2edb/DESCRIPTION’ ... OK
+    ## * preparing ‘fastEmu’:
+    ## * checking DESCRIPTION meta-information ... OK
+    ## * checking for LF line-endings in source and make files and shell scripts
+    ## * checking for empty or unneeded directories
+    ##   NB: this package now depends on R (>= 3.5.0)
+    ##   WARNING: Added dependency on R >= 3.5.0 because serialized objects in
+    ##   serialize/load version 3 cannot be read in older versions of R.
+    ##   File(s) containing such objects:
+    ##     ‘fastEmu/inst/extdata/radFusTest.rds’
+    ## * building ‘fastEmu_2.0.2.tar.gz’
+
+``` r
+
+library(fastEmu)
+```
+
+Let’s start by getting *two* p-values (using one core), then I’ll show
+you how to get them *all* (in parallel).
+
+To set up this test, we run `fastEmuFit`, giving it the fitted values
+that it has already found:
+
+- `formula`, `data`, `Y` and `cluster` are as before
 - `hdw_fit` is our previous fitted object (the output of `emuFit`)
 - `test_kj` a data frame listing the indices of the parameters (in
   `hdw_fit$B`) that we want to test.
-
-This should take about a minute to run on the RStudio server.
 
 ``` r
 
 taxa_to_test <- c(134, 372)
 covariate_to_test <- which("exposedTRUE" == hdw_fit$B %>% rownames)
-two_robust_score_tests <- emuFit(formula = ~ exposed,
-                                 data = meta,
-                                 Y = coverages,
-                                 cluster = meta$host_subject_id,
-                                 # we already have hdw_fit, don't recompute this 
-                                 fitted_model = hdw_fit,
-                                 refit = FALSE, 
-                                 test_kj = data.frame(k = covariate_to_test,
-                                                      j = taxa_to_test),
-                                 # have it tell you when it runs score tests
-                                 verbose = TRUE, 
-                                 # don't need to re-compute confidence intervals
-                                 compute_cis = FALSE) 
+two_robust_score_tests <- fastEmuFit(formula = ~ exposed,
+                                     data = meta,
+                                     Y = coverages,
+                                     cluster = meta$host_subject_id,
+                                     fitted_model = hdw_fit,
+                                     test_kj = data.frame(k = covariate_to_test,
+                                                          j = taxa_to_test),
+                                     # have it tell you when it runs score tests
+                                     verbose = TRUE) 
 ```
 
 Let’s take a look at the test output.
 
 ``` r
 
-two_robust_score_tests$coef[taxa_to_test[1], "pval"]
-```
-
-    ## [1] 0.2155614
-
-``` r
-
-hdw_fit$coef[taxa_to_test, ]
+two_robust_score_tests$coef[taxa_to_test, ]
 ```
 
     ##       covariate                category category_num  estimate        se
-    ## 134 exposedTRUE Clostridium_sp900543325          134 -2.158088 1.0303187
-    ## 372 exposedTRUE Clostridium_sp000435835          372  2.298507 0.9054655
-    ##          lower      upper score_stat pval
-    ## 134 -4.1774753 -0.1387001         NA   NA
-    ## 372  0.5238273  4.0731869         NA   NA
+    ## 134 exposedTRUE Clostridium_sp900543325          134 -2.157053 1.0189175
+    ## 372 exposedTRUE Clostridium_sp000435835          372  2.299542 0.9101272
+    ##          lower      upper score_stat      pval reference_category
+    ## 134 -4.1540945 -0.1600113   1.677088 0.1953118              FALSE
+    ## 372  0.5157255  4.0833583   1.055472 0.3042503              FALSE
 
-We do not have strong statistical evidence to conclude the
-fold-difference in abundance of these two taxa before and after exposure
-is any different than the typical fold-difference. Here’s an example
-interpretation appropriate for a paper
+Based on this, we do not have strong statistical evidence to conclude
+the fold-difference in abundance of these two taxa before and after
+exposure is any different than the typical fold-difference. Here’s an
+example interpretation appropriate for a paper:
 
 We estimate that the average abundance of Clostridium_sp900543325 in
-metagenomes is 8.7 times greater *before* commencing dairy work, when
+metagenomes is 8.6 times greater *before* commencing dairy work, when
 compared to the typical fold-differences in the average abundance of
-taxa across these visits (95% CI 1.1–65; \$p = \$0.22).
+taxa across these visits (95% CI 1.2–64; \$p = \$ 0.2).
+
+### Testing all taxa in parallel
 
 In many data analyses, we’d like to run tests for all taxa that we have
-measured. We could run robust score tests for every taxon in this
-analysis, but it will take a long time to run all tests serially. They
-can easily be run in parallel on a computing cluster (for example, if
-you are in a VM!).
+measured. *I don’t recommend running this today,* but I’ll show you how
+to set it up. There’s a full vignette [here (for the `fastEmu`
+approach)](https://statdivlab.github.io/fastEmu/articles/intro_to_fastEmu.html)
+and [here (for the `radEmu`
+approach)](https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html).
 
-We show you how this might look in the following chunk. There’s a full
-vignette
-[here](https://statdivlab.github.io/radEmu/articles/parallel_radEmu.html).
+Here are the steps for the parallel workflow in `fastEmu`:
 
-DO NOT RUN THIS UNLESS YOU HAVE THE TIME AND COMPUTING RESOURCES!
+0.  Fit the model with `emuFit` (if you haven’t already)
+1.  Fix the reference taxa with `fastEmuFit` set (to keep it consistent
+    across the parallel runs)
+2.  Test each taxon, also with `fastEmuFit`
+
+**DO NOT RUN THIS UNLESS YOU HAVE THE TIME AND COMPUTING RESOURCES!** It
+might take… 15 minutes on our cluster?
 
 ``` r
 
 ncores = parallel::detectCores() - 1
-emuTest <- function(category) {
-  score_res <- emuFit(formula = ~ exposed,
-                       data = meta,
-                       fitted_model = hdw_fit,
-                       refit = FALSE,
-                       cluster = meta$host_subject_id,
-                       test_kj = data.frame(k = covariate_to_test, 
-                                            j = category), 
-                       Y = coverages)
+## We did Step 0 already:
+# hdw_fit <- emuFit(formula = ~ exposed,
+#                                data = meta,
+#                                Y = coverages,
+#                                cluster = meta$host_subject_id,
+#                                run_score_tests = FALSE)
+
+## Step 1: fix the reference taxa
+fast_ref_set <- fastEmuFit(formula = ~ exposed,
+                           data = meta,
+                           Y = coverages,
+                           cluster = meta$host_subject_id,
+                           fitted_model = hdw_fit,
+                           reference_set = "data_driven", 
+                           run_score_tests = FALSE, 
+                           verbose = TRUE)
+
+## Step 2: Test each taxon
+## First, create a function to deploy in parallel
+fastEmuTest_fn <- function(category) {
+  score_res <- fastEmuFit(formula = ~ exposed,
+                          data = meta, 
+                          Y = coverages,
+                          cluster = meta$host_subject_id,
+                          fitted_model = fast_ref_set,
+                          test_kj = data.frame(k = covariate_to_test, 
+                                               j = category), 
+                           verbose = TRUE)
   return(score_res)
 }
+## Then, run the function 
 if (.Platform$OS.type != "windows" & !identical(Sys.getenv("GITHUB_ACTIONS"), "true")) {
   # run if we are on a Mac or Linux machine
   score_res <- parallel::mclapply(1:ncol(coverages),
-                      emuTest,
-                      mc.cores = ncores)
+                                  fastEmuTest_fn,
+                                  mc.cores = ncores)
 } else {
   # don't run if we are on a Windows machine, or if testing with GitHub actions
   # You can do it! You just would need a different setup. Please reach out!
@@ -618,9 +689,10 @@ if (.Platform$OS.type != "windows" & !identical(Sys.getenv("GITHUB_ACTIONS"), "t
 
 if (!is.null(score_res)) {
   c(score_res[[1]]$coef$pval[1], ## robust score test p-value for the first taxon
-  score_res[[2]]$coef$pval[2]) ## robust score test p-value for the second taxon
+    score_res[[2]]$coef$pval[2]) ## robust score test p-value for the second taxon
 }
 
+# Now, merge the results together
 if (!is.null(score_res)) {
   full_score <- sapply(1:length(score_res), 
                        function(x) score_res[[x]]$coef$score_stat[x])
@@ -635,15 +707,19 @@ if (!is.null(score_res)) {
 }
 ```
 
-By the way – running this many tests is quite reasonable, but the
-computation time increases as the number of predictors and number of
-taxa increases. When you need it, the package `fastEmu` will be ready
-for you \<3 We recommend using `fastEmu` over `radEmu` when running
-differential abundance analyses for very large data sets. That said, you
-do need to choose a reference set to use `fastEmu`, which makes the
-interpretation of parameter estimates less intuitive than for `radEmu`.
-If you find that `radEmu` is taking too long for your differential
-abundance analysis, consider trying `fastEmu`!
+By the way – running this many tests is probably quite reasonable, but
+the computation time increases as the number of predictors and number of
+taxa increases.
+
+That there are tradeoffs to using `fastEmu` – it is an approximate test,
+and the results may differ compared to the “gold standard” of testing
+with `radEmu`. I would recommend running fastEmu first, then re-running
+any particularly interesting taxa with radEmu. Note – if you take this
+approach, you *must* do false discovery correction on the full set of
+taxa you tested, not just the interesting subset that you re-ran!!
+
+Finally, although this example uses a single binary covariate, `radEmu`
+and `fastEmu` can be run with more complex regression models.
 
 ## A quick constrast with other methods
 
@@ -689,6 +765,4 @@ reflect our bias.**
     zeroes poorly/weirdly
 
 Check out the documentation for each of these packages for more
-information and more practice using them. Although this example uses a
-single binary covariate, each of these methods can be run with more
-complex regression models.
+information and more practice using them.
