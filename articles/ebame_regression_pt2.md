@@ -1,0 +1,330 @@
+# EBAME: Functional enrichment in R
+
+## Background
+
+First, work through the “EBAME10: Functional enrichment in anvi’o”.
+
+As discussed in lecture, the anvio functional enrichment toolkit is
+great for quick and simple comparisons. However, should want more
+details! How much do the odds of detecting a gene differ between the
+groups? What about when you want to make more complex comparisons? What
+about if you studied multiple sites longitudinally?
+
+This tutorial walks you through pulling the data out of anvio, into R,
+and running functional enrichment analyses yourself in R.
+
+## Setup
+
+Open a terminal wherever you were running Part 1. You’re probably in a
+directory called `Prochlorococcus_31_genomes`. I assume anvio commands
+can still run.
+
+Remember that we want to ask “How does the odds that a gene is present
+differ between high and low light genomes?” To answer this, we need to
+know which genes were detected in which genomes. So, let’s get that info
+out of anvio and into a format we can load into R.
+
+Let’s make a new directory to keep this info in.
+
+    mkdir genes 
+
+If you’ve setup your annotation databases correctly, you can pull out
+the gene annotations and save them in the folder `genes` by copying the
+following loop into your terminal (may take a few minutes, so continue
+with setting R in the mean time):
+
+    for file in *.db; do
+        base=$(basename "$file" .db)
+        anvi-export-functions -c "$file" -o "genes/${base}.txt"
+    done
+
+Before moving to R, let’s put all this information in our
+`~/mydatalocal/` directory for easy access:
+
+    zip -r "../$(basename "$PWD").zip" . && mkdir -p ~/mydatalocal && cp "../$(basename "$PWD").zip" ~/mydatalocal/
+
+Ok! Time to read in and analyze this data in R. Open your favourite
+interactive R editor. Let’s load in the high/low light data:
+
+    ## You should now be working in R/RStudio, not the terminal! 
+    library(tidyverse)
+
+    dir <- "~/mydatalocal/Prochlorococcus_31_genomes/"
+    meta <- read_tsv(paste0(dir, "layer-additional-data.txt"))
+
+## Wrangling the data out of anvi’o and into R
+
+Our first step is to extract and format our data to something R likes.
+We will do this in a few steps.
+
+In the following code we:
+
+1.  List all files in the genes folder (extracted from anvi’o above)
+    with `list.files`, and for each file, we read as a table (with
+    `read_tsv`) and added a column named “sample” with the name of the
+    source file (with `mutate`).
+2.  Joined all these tables by their rows with
+    [`bind_rows()`](https://dplyr.tidyverse.org/reference/bind_rows.html).
+3.  Kept only those whose annotation source equals `COG14_FUNCTION` with
+    `filter`.
+4.  Remove the not-longer-needed columns “source” and “e-value” with
+    `select`.
+5.  Change the name of the column “function” with “cog_function” with
+    \`rename\`\`.
+6.  Made sure there are not identical rows using `distinct` (repeated
+    rows would have been deleted).
+
+&nbsp;
+
+    what_is_there <- list.files(paste0(dir, "genes"), pattern = "*.txt", full.names = T) %>%
+      lapply(function(f) {
+        read_tsv(f) %>%
+          mutate(sample = str_remove(basename(f), ".txt"))
+      }) %>%
+      bind_rows() %>%
+      filter(source == "COG14_FUNCTION") %>% 
+      dplyr::select(-source, -`e_value`) %>% 
+      rename(cog_function = `function`) %>% 
+      distinct
+
+“what_is_there” is now a table listing all genes found in each of the
+sample genomes, along with their accession code and the functions
+annotated to them by COG14_function.
+
+Now, we will create a look-up table to connect accessions to functions.
+
+    cog_fns <- what_is_there %>% 
+      dplyr::select(accession, cog_function) %>% 
+      distinct
+    cog_fns
+
+How many distinct accession-function combinations we obtained?
+`dim(cog_fns)`
+
+Now, we finish by constructing the table of gene presence/absence with a
+useful format for the regression model we will fit later.
+
+In the following code we construct our table “genes_long” from
+“what_is_there” by:
+
+1.  Add a column called “presence” full of 1’s with `mutate` (this
+    eventually will indicate the gene in that row is present in the
+    sample on the same row)
+2.  Removing not-longer-useful columns and keeping only “sample”,
+    “accession” and “presence” with `select`
+3.  Remove repeated rows with `distinct`
+4.  Change the format of the table from long to wide, using “sample” as
+    the name of the rows, “accession” as the name of the columns and
+    filling up the table with “presence” with `pivot_longer`. Note that
+    `values_fill = 0` indicates that whenever a combination of
+    “sample”-“accession” was not a part of the table (ie we are missing
+    the value 1 in presence), to fill it up with 0. As a result, missing
+    genes in samples will have presence 0, while present genes will have
+    presence 1.
+5.  Return to the long format with `pivot_longer`, keeping all the zeros
+    filled up in the previous step.
+6.  We add covariate information contained in the table “meta”, adding
+    the columns “clade” and “light” with `inner_join`.
+
+&nbsp;
+
+    genes_long <- what_is_there %>%
+      mutate(presence = 1) %>%
+      dplyr::select(sample,accession,presence) %>%
+      distinct %>% 
+      pivot_wider(values_from = presence, values_fill = 0, names_from = accession) %>%
+      pivot_longer(!sample,names_to = "cog", values_to = "presence") %>% 
+      inner_join(meta, by = c("sample" = "isolate")) 
+
+“genes_long” is now a table that contains a list of all the samples and
+all the genes, with a 1 in “presence” if the gene is in the sample, and
+0 if it is missing, and with information on the sample by having “clade”
+and “light”.
+
+## Modelling gene presence
+
+We are ready for some modeling!!
+
+We will be employing the library raoBust, which implements generalized
+linear models, along with robust score test. You may need to install it
+if you haven’t.
+
+    install.packages("remotes")
+    remotes::install_github("statdivlab/raoBust")
+
+    library(raoBust)
+
+Let’s start with a small case and turn our attention to the gene with
+accession “COG4251”, because as shown by
+
+    cog_fns %>%
+      filter(accession == "COG4251") 
+
+this gene codes for a light-sensitive protein. Thus, we would expect the
+odds of it being present in a sample will be different in samples
+collected with high or low light. How can we learn if this is the case?
+
+The following code fits a model to estimate the difference in odds we
+are looking for.
+
+    genes_long %>%
+      filter(cog == "COG4251") %>%
+      glm_test(presence ~ light, data = .,
+               family = binomial(link = "logit"))
+
+What do we observe in the output? Is the estimate positive or negative?
+Does it appear to be a significant signal (per the Robust Score
+p-value)?
+
+Take note of these things for now and contrast them with what we obtain
+when exploring the presence/absence of a different gene. Let’s explore
+the difference in the odd of presence of the gene with accession
+“COG0592”.
+
+    genes_long %>%
+      filter(cog == "COG0592") %>%
+      glm_test(presence ~ light, data = .,
+               family = binomial(link = "logit"))
+
+What happened here? Why could it be that the p-value obtained through
+the Robust Score test is so large?
+
+Well, it turns out…
+
+    genes_long %>%
+      filter(cog == "COG0592") %>% 
+      count(presence,light) 
+
+Everyone has this gene! And that makes sense, because…
+
+    cog_fns %>%
+      filter(accession == "COG0592") 
+
+## Interpreting the results
+
+So we have found some evidence of relatedness between the amount of
+light exposure in a sample and the presence/absence of gene “COG4251”,
+while not having any evidence of the same thing for gene “COG0592”. How
+can we properly report these finds?
+
+Here is a paragraph that would make a statistician very happy to read in
+your paper:
+
+We estimate the odds of the gene “COG4251” being present in a low-light
+ocean sample is 9.8^{-10} times lower than the odds of the same gene
+being present in a high-light ocean sample (95% CI \[2.9^{-10} –
+3.3^{-9}\]; p = 3.32^{-03}). We have statistical evidence of a
+difference in odds of the presence of this gene between samples from
+low-light ocean areas and samples from high-light ocean areas.
+
+The values reported above where obtained by computing the exponential of
+the estimates and the confidence interval limits (for example,
+$`e^{-20.74839} =`$ 9.8^{-10}), since the fitted model estimated the log
+fold-difference between odds, and when reporting results it might be of
+interest to express how the estimated odds directly change.
+
+On the other hand, the reporting for gene “COG0592” would be different.
+We are careful in reporting “negative” results, because the lack of
+statistical evidence of a significant difference is not the same as
+evidence for no difference at all.
+
+We estimate the odds of the gene “COG0592” being present in a low-light
+ocean sample is approximately the same as the odds of the same gene
+being present in a high-light ocean sample (95% CI \[0.47 – 2.1\]; p =
+1.0). We have no statistical evidence to reject the hypothesis of the
+odds of the presence of this gene being different between low-light
+ocean samples and high-light ocean samples.
+
+## Running at scale
+
+How do we run and handle these tests for the whole set of genes?
+
+For this we can create a table for each gene (using `group_split` based
+in the column cog), and running the model above for each. This may take
+a few minutes!
+
+    coefs <- genes_long %>%
+      group_split(cog) %>%
+      set_names(map_chr(., ~ unique(.x$cog))) %>%
+      map(~ glm_test(presence ~ light, data = .x, family = binomial(link = "logit"))$coef) %>%
+      imap_dfr(~ as_tibble(.x, rownames = "term") |>
+                 mutate(cog = .y),
+               .id = NULL) %>%
+      relocate(cog)
+
+## Exploring and interpreting the results
+
+Now, look at the results! We can do this in several ways like:
+
+1.  Directly looking at the estimated numbers!
+2.  Plotting the estimated difference in odds, along with the robust
+    standard error.
+3.  We can order the estimated coefficients from those indicating higher
+    differences overall (some repetitions in our estimates happened. Why
+    could this be?)
+
+&nbsp;
+
+    coefs %>%
+      filter(term == "lightLL") %>%
+      dplyr::select(-`Non-robust Std Error`, -`Non-robust Wald p`, -`Robust Wald p`) %>%
+      arrange(desc(abs(Estimate)))
+      
+    coefs %>%
+      filter(term == "lightLL") %>%
+      ggplot(aes(x = Estimate, y = `Robust Std Error`)) +
+      geom_jitter()
+
+    coefs %>%
+      filter(term == "lightLL") %>%
+      count(Estimate) %>%
+      arrange(desc(abs(Estimate)))
+
+How can we make any conclusions on this large-scale exploration? And how
+should we report these conclusions?
+
+When fitting linear models and performing hypothesis tests at large
+scale (as we are doing here, fitting a model for each of the 1546 gene
+functions in our data), we need to be mindful on what we consider
+“statistical significant”. Do this, or risk being overly confident of
+noise!
+
+Luckily, we have a good way to account for this volume of testing:
+Q-values. These values control for the false discovery rate among all
+tests, by describing the expected proportion of type 1 errors (rejecting
+the null hypothesis when the null hypothesis is true) between the
+rejected hypothesis.
+
+In simple terms: if a test has q-value 0.05, it means we estimate 5% of
+null hypothesis rejected for being as “extreme” as this hypothesis would
+be false discoveries.
+
+We can compute the q-values and add these to the estimated coefficients
+for each test with the following code (you will need the library
+qvalue):
+
+    BiocManager::install("qvalue")
+
+    coefs %>%
+      filter(term == "lightLL") %>%
+      dplyr::select(-`Non-robust Std Error`, -`Non-robust Wald p`, -`Robust Wald p`, -term) %>%
+      # pull(`Robust Score p`) %>%
+      mutate(qq = qvalue::qvalue(p = `Robust Score p`)$qvalues)
+
+Doing this, what is the q-value associated to the estimator of the
+difference in odds of the presence of gene with accession “COG4251”,
+which we found significant in the previous section?
+
+    coefs %>%
+      filter(term == "lightLL") %>%
+      dplyr::select(-`Non-robust Std Error`, -`Non-robust Wald p`, -`Robust Wald p`, -term) %>%
+      # pull(`Robust Score p`) %>%
+      mutate(qq = qvalue::qvalue(p = `Robust Score p`)$qvalues) %>%
+      filter(cog == "COG4251")
+
+We rejected the null hypothesis “The odds of the gene with accession
+COG4251 being present in low-light ocean samples are the same as the
+odds of the gene being present in samples from high-light ocean samples”
+before. The q-value for this test (when ran along tests for all other
+genes) is 0.0536. Meaning, only 5.36% of tests rejected under the same
+conditions would be actually false discoveries. This is a positive find!

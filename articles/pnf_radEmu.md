@@ -1,0 +1,202 @@
+# PNF: radEmu for differential abundance
+
+[Software](https://github.com/statdivlab/radEmu/) \|
+[Documentation](https://statdivlab.github.io/radEmu/) \|
+[Preprint](https://arxiv.org/abs/2402.05231) \|
+[Supplementary](https://github.com/statdivlab/radEmu_supplementary)
+
+**TL;DR**: Amy recommends
+[radEmu](https://github.com/statdivlab/radEmu/) for differential
+abundance analysis. She recommends it above corncob, ALDEx2, regression
+on compositional data transformations, anything in the ANCOM family…
+basically above anything else that’s out there right now.
+
+I don’t even know where to start with this paper. It’s just a great
+method. I love everything about it. But this post is about why YOU
+should love it. Hmmm, where should I start?
+
+## What are we even doing when we fit a statistical model?
+
+There’s a lot of rhetoric in the microbiome data analysis field. Is
+microbiome data zero-inflated? Overdispersed? Negative Binomial?
+Beta-Binomial? Compositional? Purple with pink spots?
+
+In my view, these are the wrong questions.
+
+Instead, I think we should be asking questions that are grounded in our
+science:
+
+- How many different bacterial species are there in polar oceans?
+  ([breakaway](https://github.com/adw96/breakaway) is good for that one)
+- Are there more different species in amended or unamended soils?
+  ([betta](https://academic.oup.com/jrsssc/article/66/5/963/7058270),
+  also implemented in [breakaway](https://github.com/adw96/breakaway),
+  might help)
+- What taxa are more abundant in gut microbiomes of folx diagnosed with
+  colorectal cancer than an age- and sex-matched non-cancer controls?
+  That’s **radEmu**!
+
+One of the things I love most about radEmu is that is starts with
+biology, not data. So, rather than “We fit fancy model X to the data,”
+we start with **“How much more abundant on average is *A. bacterium* in
+site A than site B?”**
+
+## Get me out of here
+
+If you take the blue pill, radEmu answers “How much more abundant on
+average is *A. bacterium* in site A than site B?”.
+
+But don’t take the blue pill.
+
+## What can and can’t radEmu tell me? And whose fault is it?
+
+In the radEmu paper, we showed that “How much more abundant on average
+is *A. bacterium* in site A than site B?” can’t be answered from HTS
+data under reasonable assumptions (like “[some taxa are consistently
+over-detected](https://elifesciences.org/articles/46923)”). This isn’t a
+radEmu problem – it’s a mathematical fact about our data. I want to
+strongly emphasise that ALDEx2, ANCOM-BC2, etc., do not address this
+issue. It’s completely swept under the rug. I point this out not to
+shame them, but to highlight the advantage of going the “scientific
+question $`\rightarrow`$ can we answer it? $`\rightarrow`$ here’s a
+method” approach rather than the “data has feature X $`\rightarrow`$
+here’s a method that captures feature X”.
+
+So, what can we learn from HTS data? Well, we can answer “How much more
+abundant on average is *A. bacterium* in site A than site B compared to
+*A. notherbacterium*?” That’s cool, but most people don’t have *A.
+notherbacterium* that they care about. Great news – we can answer “How
+much more abundant on average is *A. bacterium* in site A than site B
+compared to the average difference between taxa?” So, instead of
+choosing a reference taxon, you can just compare it to the average. You
+don’t have to assume that average change is zero, of course! You’re just
+looking for what’s most different. Think of it this way: if a list of
+fold-changes is 20, 1.2, 1.1, 1.1, 1, 0.9 and 0.1, you’re probably most
+interested in the 20x and 0.1x fold-changers. 1.1 isn’t *no* fold
+change, but compared to 20, it’s not that interesting.
+
+## Where do the numbers actually come from?
+
+At this point, I often hear “Sounds good, so do you just do some
+compositional transformation and t-test?” No. No, we don’t. Instead, we
+set up an optimisation problem that guarantees a good estimate of those
+(centered) fold-changes. So, I can’t given you a one-line equation for
+it. But, you can sleep soundly knowing that the estimate
+
+- is guaranteed to get more and more right as you get more samples (so
+  prioritize more samples over deeper sequencing)
+- converges in distribution to something nice = we can give you the
+  p-values you probably came for
+- doesn’t require you to “deal” with zeroes
+- doesn’t require you to choose amongst data transformations (CLR, ALR,
+  TSS…)
+- doesn’t require you to choose a reference group
+- doesn’t assume that your data is Poisson, Negative Binomial, Super
+  Fancy But Arbitrary Hierarchical Model etc-ed distributed
+- **estimates something real** (actual fold-changes in abundance) under
+  clear assumptions (taxa may be overdetected; but consistently so)
+
+*Aside: Here’s a not-so-fun fact – “intuitive” methods that
+log-transform pseudocount-modified data are* guaranteed *to converge to
+the wrong answer (“inconsistency”). It may not be very wrong in
+practice, but it’ll still be wrong. But that’s another blog post for
+another day…*
+
+## Lions, tigers, zeroes and logs
+
+Part of the reason we can side-step “zeroes and logs” is that our
+optimisation problem models log(mean abundance), not mean(log
+abundance). As the compositional zealots love to remind you, the latter
+isn’t defined if you ever have zeroes. But, then… what does it mean to
+talk about the average of a collection of numbers with a non-zero
+probability of an infinite value? It doesn’t mean anything, in my
+opinion, which is one more reason not to do it that way. Instead, as
+long as there is a positive probability of the species being detected in
+*some* environment, log(mean abundance) is well-defined.
+
+Oh yeah, and our optimisation problem doesn’t care about counts
+(integers) or coverages (non-negative numbers). It’s all the same to us.
+So, give radEmu your metagenomic data! Nom nom.
+
+## Winding down…
+
+And those are the main ideas! The rest is just details, really. We don’t
+simply do a t-test to give you p-values because it turns out that the
+p-values are too small. We don’t even do a fancy “robust” t-test,
+because they’re still too small. We want you to have the best, most
+perfect p-values possible (and we love these details), so our p-values
+come from robust score tests, which perform just beautifully in
+practice. Great work, co-author David!
+
+## Interpreting the output
+
+Ok, interpreting radEmu output. Why don’t we talk about this more?! It
+is really very important. A corncob coefficient estimate of 0.5 means
+something totally different to an ALDEx2 estimate of 0.5 – which no one
+seems to talk about! Anyway, here’s how you interpret a radEmu estimate
+of 0.5 when using the default settings:
+
+“We estimate that *A. bacterium* is 1.648 times more abundant in
+\[environment A\] than in \[otherwise similar\] / \[ environment B \]
+compared to typical fold-changes in taxon abundances.”
+
+1.648? That’s just exp(0.5). And the “otherwise similar” is important if
+you’re adjusting for other variables – here’s another option:
+
+“We estimate that *A. bacterium* is 1.648 times more abundant in
+\[environment A\] than in \[ environment B \]’s of the same temperature
+and season, when compared to typical fold-changes in taxon abundances.”
+
+It gets a bit wordy, but it’s very important to be clear what comparison
+you’re making. (You don’t have to worry about “otherwise similar” if
+you’re not adjusting for other variables.)
+
+## Speed
+
+Also, If you’re finding radEmu to be too slow, let us know! We can help
+you tune it, and it helps us to know how people are using the method.
+
+**This has not yet been done but will be done soon (Feb 2025):** We
+updated the preprint to make the intro clearer, and to add some more
+benchmarking – great work, co-author Sarah! I find the benchmarking
+extremely convincing that radEmu has the best power out of methods that
+control T1E rates. (And you shouldn’t even consider using methods that
+don’t control T1E rates.)
+
+radEmu works great up to… maybe 2000 taxa? If you have more taxa, you
+might want our fast approximation method. So, watch this space.
+`fastEmu` will have a friend here shortly…
+
+## Other fun facts
+
+If you have a spike-in, great! Use that as your reference group and you
+don’t have to worry about this “compared to typical fold-changes” thing.
+You can just say “We estimate that *A. bacterium* is 1.648 times more
+abundant in \[environment A\] than in \[ environment B \]’s of the same
+temperature and season.”
+
+Yes, radEmu “can handle” longitudinal data. I put this in quotes because
+it’s a question I get asked a lot, but a vacuous question because there
+are a lot of different things you “can do” with longitudinal data.
+radEmu can probably do what you want. You probably want to use the
+`cluster` argument, documented
+[here](https://statdivlab.github.io/radEmu/articles/radEmu_clustered_data.html)
+tutorial.
+
+## Wrap-up
+
+I really believe that radEmu is a great way to do differential
+abundance, and because of that, I want you to use it. So, please check
+it out, and let us know your feedback. If there’s something we can do to
+convince you to use it, tell us, please!
+
+If you have questions about the method, feel free to email me – I might
+write another blog post about radEmu if more things come up.
+
+Oh yeah, and radEmu is our affectionate nickname for radEmuAbPill.
+“using **r**elative **a**bundance **d**ata to **e**stimate
+**mu**ltiplicative differences in **ab**solute abundances with
+**p**artially **i**dentified **l**og-**l**inear models.” Plus, it makes
+for a great logo.
+
+Thanks for reading!
