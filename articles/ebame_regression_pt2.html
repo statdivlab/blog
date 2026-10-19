@@ -115,7 +115,10 @@ so continue with setting R in the mean time):</p>
 done</code></pre>
 <p>Before moving to R, let’s put all this information in our
 <code>~/mydatalocal/</code> directory for easy access:</p>
-<pre><code>zip -r "../$(basename "$PWD").zip" . &amp;&amp; mkdir -p ~/mydatalocal &amp;&amp; cp "../$(basename "$PWD").zip" ~/mydatalocal/</code></pre>
+<pre><code>zip -r "../$(basename "$PWD").zip" . </code></pre>
+<p>At this point, open up your RStudio, hit the “upload” button, then
+upload this zip folder into the target directory
+<code>~/mydatalocal</code>.</p>
 <p>Ok! Time to read in and analyze this data in R. Open your favourite
 interactive R editor. Let’s load in the high/low light data:</p>
 <pre><code><span><span class="co">## You should now be working in R/RStudio, not the terminal! </span></span>

@@ -305,7 +305,7 @@ system.time({hdw_fit <- emuFit(formula = ~ exposed,
 ```
 
     ##    user  system elapsed 
-    ##   1.837   0.018   1.854
+    ##   1.788   0.016   1.805
 
 Less than a minute?! Two seconds – woohoo! (Props to Sarah Teichman for
 a lot of amazing improvements to the estimation algorithm during 2025
@@ -556,7 +556,7 @@ if (!("fastEmu" %in% row.names(installed.packages()))) {
 }
 ```
 
-    ## * checking for file ‘/tmp/Rtmp58QT9e/remotes1a2f6276b2f3/statdivlab-fastEmu-bff2edb/DESCRIPTION’ ... OK
+    ## * checking for file ‘/tmp/RtmpXABGOr/remotes1a2e7be32dc2/statdivlab-fastEmu-bff2edb/DESCRIPTION’ ... OK
     ## * preparing ‘fastEmu’:
     ## * checking DESCRIPTION meta-information ... OK
     ## * checking for LF line-endings in source and make files and shell scripts
