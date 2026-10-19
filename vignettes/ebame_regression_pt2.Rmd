@@ -42,9 +42,10 @@ done
 Before moving to R, let's put all this information in our `~/mydatalocal/` directory for easy access: 
 
 ```
-zip -r "../$(basename "$PWD").zip" . && mkdir -p ~/mydatalocal && cp "../$(basename "$PWD").zip" ~/mydatalocal/
+zip -r "../$(basename "$PWD").zip" . 
 ```
 
+At this point, open up your RStudio, hit the "upload" button, then upload this zip folder into the target directory `~/mydatalocal`. 
 
 Ok! Time to read in and analyze this data in R. Open your favourite interactive R editor. Let's load in the high/low light data:
 
