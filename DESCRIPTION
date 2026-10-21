@@ -14,8 +14,7 @@ LazyData: true
 RoxygenNote: 7.3.2
 Depends: 
     tidyverse,
-    remotes,
-    raoBust
+    remotes
 Suggests: 
     knitr,
     rmarkdown

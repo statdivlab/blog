@@ -4,7 +4,7 @@ author: "Amy D Willis"
 date: "Last updated October 20 2026"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{EBAME10: Pangenomics hypothesis testing in R}
+  %\VignetteIndexEntry{Checking assumptions and robust testing}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -63,6 +63,10 @@ Here's one way you can get robust standard errors and robust score tests. For li
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
+select <- dplyr::select ## I do this everytime I load tidyverse
+if (!("raoBust" %in% row.names(installed.packages()))) {
+  remotes::install_github("statdivlab/raoBust")
+}
 library(raoBust)
 linear1 <- ddPCR %>% 
   filter(SpecimenType == "Sputum") %>% 
