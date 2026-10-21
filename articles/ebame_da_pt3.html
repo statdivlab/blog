@@ -33,7 +33,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/ebame_da_pt3.html">EBAME: Differential Abundance with anvi'o ouput</a></li>
+<li><a class="dropdown-item" href="../articles/assumptions.html">Testing for normality? Don't bother</a></li>
+    <li><a class="dropdown-item" href="../articles/ebame_da_pt3.html">EBAME: Differential Abundance with anvi'o ouput</a></li>
     <li><a class="dropdown-item" href="../articles/ebame_regression_pt1.html">EBAME: Functional enrichment in anvi'o</a></li>
     <li><a class="dropdown-item" href="../articles/ebame_regression_pt2.html">EBAME: Functional enrichment in R</a></li>
     <li><a class="dropdown-item" href="../articles/pnf_extn_spaces.html">PNF: Extension spaces for phylogenetic trees</a></li>
@@ -324,7 +325,7 @@ above! This code should take less than a minute to run.</p>
 <span>                               cluster <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">host_subject_id</span>,</span>
 <span>                               run_score_tests <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##    user  system elapsed </span></span>
-<span><span class="co">##   1.788   0.016   1.805</span></span></code></pre>
+<span><span class="co">##   1.795   0.034   1.830</span></span></code></pre>
 <p>Less than a minute?! Two seconds – woohoo! (Props to Sarah Teichman
 for a lot of amazing improvements to the estimation algorithm during
 2025 that made this possible.)</p>
@@ -543,20 +544,8 @@ and the average difference was
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="op">(</span><span class="st">"fastEmu"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/row.names.html" class="external-link">row.names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html" class="external-link">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"statdivlab/fastEmu"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<pre><code><span><span class="co">## * checking for file ‘/tmp/RtmpXABGOr/remotes1a2e7be32dc2/statdivlab-fastEmu-bff2edb/DESCRIPTION’ ... OK</span></span>
-<span><span class="co">## * preparing ‘fastEmu’:</span></span>
-<span><span class="co">## * checking DESCRIPTION meta-information ... OK</span></span>
-<span><span class="co">## * checking for LF line-endings in source and make files and shell scripts</span></span>
-<span><span class="co">## * checking for empty or unneeded directories</span></span>
-<span><span class="co">##   NB: this package now depends on R (&gt;= 3.5.0)</span></span>
-<span><span class="co">##   WARNING: Added dependency on R &gt;= 3.5.0 because serialized objects in</span></span>
-<span><span class="co">##   serialize/load version 3 cannot be read in older versions of R.</span></span>
-<span><span class="co">##   File(s) containing such objects:</span></span>
-<span><span class="co">##     ‘fastEmu/inst/extdata/radFusTest.rds’</span></span>
-<span><span class="co">## * building ‘fastEmu_2.0.2.tar.gz’</span></span></code></pre>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">fastEmu</span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">}</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">fastEmu</span><span class="op">)</span></span></code></pre></div>
 <p>Let’s start by getting <em>two</em> p-values (using one core), then
 I’ll show you how to get them <em>all</em> (in parallel).</p>
 <p>To set up this test, we run <code>fastEmuFit</code>, giving it the
@@ -572,7 +561,7 @@ fitted values that it has already found:</p>
 <code>test_kj</code> a data frame listing the indices of the
 parameters (in <code>hdw_fit$B</code>) that we want to test.</li>
 </ul>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">taxa_to_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">134</span>, <span class="fl">372</span><span class="op">)</span></span>
 <span><span class="va">covariate_to_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="st">"exposedTRUE"</span> <span class="op">==</span> <span class="va">hdw_fit</span><span class="op">$</span><span class="va">B</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="va">rownames</span><span class="op">)</span></span>
 <span><span class="va">two_robust_score_tests</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/fastEmu/man/fastEmuFit.html" class="external-link">fastEmuFit</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="op">~</span> <span class="va">exposed</span>,</span>
@@ -585,7 +574,7 @@ parameters (in <code>hdw_fit$B</code>) that we want to test.</li>
 <span>                                     <span class="co"># have it tell you when it runs score tests</span></span>
 <span>                                     verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> </span></code></pre></div>
 <p>Let’s take a look at the test output.</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">two_robust_score_tests</span><span class="op">$</span><span class="va">coef</span><span class="op">[</span><span class="va">taxa_to_test</span>, <span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">##       covariate                category category_num  estimate        se</span></span>
 <span><span class="co">## 134 exposedTRUE Clostridium_sp900543325          134 -2.157053 1.0189175</span></span>
@@ -620,7 +609,7 @@ consistent across the parallel runs)</li>
 </ol>
 <p><strong>DO NOT RUN THIS UNLESS YOU HAVE THE TIME AND COMPUTING
 RESOURCES!</strong> It might take… 15 minutes on our cluster?</p>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ncores</span> <span class="op">=</span> <span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span>
 <span><span class="co">## We did Step 0 already:</span></span>
 <span><span class="co"># hdw_fit &lt;- emuFit(formula = ~ exposed,</span></span>

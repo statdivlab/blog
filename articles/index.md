@@ -2,6 +2,8 @@
 
 ### All vignettes
 
+- [Testing for normality? Don't
+  bother](https://statdivlab.github.io/blog.html/articles/assumptions.md):
 - [EBAME: Differential Abundance with anvi'o
   ouput](https://statdivlab.github.io/blog.html/articles/ebame_da_pt3.md):
 - [EBAME: Functional enrichment in

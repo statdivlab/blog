@@ -305,7 +305,7 @@ system.time({hdw_fit <- emuFit(formula = ~ exposed,
 ```
 
     ##    user  system elapsed 
-    ##   1.788   0.016   1.805
+    ##   1.795   0.034   1.830
 
 Less than a minute?! Two seconds – woohoo! (Props to Sarah Teichman for
 a lot of amazing improvements to the estimation algorithm during 2025
@@ -554,22 +554,6 @@ taxa).
 if (!("fastEmu" %in% row.names(installed.packages()))) {
   remotes::install_github("statdivlab/fastEmu")
 }
-```
-
-    ## * checking for file ‘/tmp/RtmpXABGOr/remotes1a2e7be32dc2/statdivlab-fastEmu-bff2edb/DESCRIPTION’ ... OK
-    ## * preparing ‘fastEmu’:
-    ## * checking DESCRIPTION meta-information ... OK
-    ## * checking for LF line-endings in source and make files and shell scripts
-    ## * checking for empty or unneeded directories
-    ##   NB: this package now depends on R (>= 3.5.0)
-    ##   WARNING: Added dependency on R >= 3.5.0 because serialized objects in
-    ##   serialize/load version 3 cannot be read in older versions of R.
-    ##   File(s) containing such objects:
-    ##     ‘fastEmu/inst/extdata/radFusTest.rds’
-    ## * building ‘fastEmu_2.0.2.tar.gz’
-
-``` r
-
 library(fastEmu)
 ```
 

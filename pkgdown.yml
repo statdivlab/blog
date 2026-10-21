@@ -2,13 +2,14 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
+  assumptions: assumptions.html
   ebame_da_pt3: ebame_da_pt3.html
   ebame_regression_pt1: ebame_regression_pt1.html
   ebame_regression_pt2: ebame_regression_pt2.html
   pnf_extn_spaces: pnf_extn_spaces.html
   pnf_radEmu: pnf_radEmu.html
   stamps_2025: stamps_2025.html
-last_built: 2026-10-19T08:43Z
+last_built: 2026-10-21T08:19Z
 urls:
   reference: https://statdivlab.github.io/blog.html/reference
   article: https://statdivlab.github.io/blog.html/articles
