@@ -56,12 +56,12 @@ Robust standard errors and robust testing provide a solution to both of these pr
 
 Here's one way you can get robust standard errors and robust score tests. For linear regression:
 
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
+```{r, echo = FALSE, warning=FALSE, message=FALSE, results = "hide"}
 library(tidyverse)
 select <- dplyr::select ## I do this everytime I load tidyverse
-if (!("raoBust" %in% row.names(installed.packages()))) {
-  remotes::install_github("statdivlab/raoBust")
-}
+# if (!("raoBust" %in% row.names(installed.packages()))) {
+#   remotes::install_github("statdivlab/raoBust")
+# }
 library(raoBust)
 linear1 <- ddPCR %>% 
   filter(SpecimenType == "Sputum") %>% 
@@ -197,9 +197,9 @@ In summary, "parametric" tests don't make parametric assumptions, and
 
 I don't know of a good textbook or paper that makes this point clearly and well -- especially in a way useful for microbial ecologists (my target audience). (Maybe I'll try to get this note published somewhere?)
 
-But the math is straightforward and uses common tools in mathematical statistics... In fact, I can prove them for you quickly here. I do this to write down
+But the math is straightforward and uses common tools in mathematical statistics... In fact, I can prove them for you quickly here. I do this in order to provide you with these results in a *transparent, self-contained* manner. 
 
-**The validity of t-tests when the data are not normally distributed** 
+## The validity of t-tests when the data are not normally distributed
 
 Formal claim: If $X_1^a, X_2^a, \ldots, X_{n_a}^a$ are drawn independently from *some* distribution with mean $\mu_a$  and $X_1^b, X_2^b, \ldots, X_{n_b}^b$ are drawn independently from *some* distribution with mean $\mu_b$. Let $\bar{X}^a = \frac{1}{n_a} \sum_{i=1}^{n_a} X_i$  and $\hat{\sigma}_a$ be the sample standard deviation in group a's observations, and likewise for $\bar{X}^b = \frac{1}{n_a} \sum_{i=1}^{n_a} X_i$  and $\hat{\sigma}_b$ . Then 
 
