@@ -88,50 +88,6 @@ rather than imposed by a distributional model.
 Here’s one way you can get robust standard errors and robust score
 tests. For linear regression:
 
-    ## prettyunits  (NA -> 1.2.0    ) [CRAN]
-    ## progress     (NA -> 1.2.3    ) [CRAN]
-    ## fontLiber... (NA -> 0.1.0    ) [CRAN]
-    ## fontBitst... (NA -> 0.1.1    ) [CRAN]
-    ## fontquiver   (NA -> 0.2.1    ) [CRAN]
-    ## cpp11        (NA -> 0.5.5    ) [CRAN]
-    ## htmlwidgets  (NA -> 1.6.4    ) [CRAN]
-    ## gdtools      (NA -> 0.5.2    ) [CRAN]
-    ## iterators    (NA -> 1.0.14   ) [CRAN]
-    ## quadprog     (NA -> 1.5-8    ) [CRAN]
-    ## RcppEigen    (NA -> 0.3.4.0.2) [CRAN]
-    ## shape        (NA -> 1.4.6.1  ) [CRAN]
-    ## foreach      (NA -> 1.5.2    ) [CRAN]
-    ## labelled     (NA -> 2.16.1   ) [CRAN]
-    ## mosaicCore   (NA -> 0.9.5    ) [CRAN]
-    ## ggridges     (NA -> 0.5.7    ) [CRAN]
-    ## ggiraph      (NA -> 0.9.6    ) [CRAN]
-    ## RcppParallel (NA -> 6.2.1    ) [CRAN]
-    ## RcppArmad... (NA -> 15.6.2-1 ) [CRAN]
-    ## mvtnorm      (NA -> 1.4-2    ) [CRAN]
-    ## kinship2     (NA -> 1.9.6.2  ) [CRAN]
-    ## glmnet       (NA -> 5.1      ) [CRAN]
-    ## ggformula    (NA -> 2.0.0    ) [CRAN]
-    ## geeM         (NA -> 0.10.1   ) [CRAN]
-    ## geepack      (NA -> 1.3.13   ) [CRAN]
-    ## Rcpp         (NA -> 1.1.2    ) [CRAN]
-    ## rbibutils    (NA -> 2.4.1    ) [CRAN]
-    ## reformulas   (NA -> 0.4.4    ) [CRAN]
-    ## nloptr       (NA -> 2.2.1    ) [CRAN]
-    ## minqa        (NA -> 1.2.8    ) [CRAN]
-    ## Rdpack       (NA -> 2.6.6    ) [CRAN]
-    ## MESS         (NA -> 0.6.0    ) [CRAN]
-    ## lme4         (NA -> 2.0-6    ) [CRAN]
-    ## zoo          (NA -> 1.9-1    ) [CRAN]
-    ## geeasy       (NA -> 0.1.3    ) [CRAN]
-    ## sandwich     (NA -> 3.1-3    ) [CRAN]
-
-    ## * checking for file ‘/tmp/RtmpvWio67/remotes1b46347db91b/statdivlab-raoBust-7b6aef8/DESCRIPTION’ ... OK
-    ## * preparing ‘raoBust’:
-    ## * checking DESCRIPTION meta-information ... OK
-    ## * checking for LF line-endings in source and make files and shell scripts
-    ## * checking for empty or unneeded directories
-    ## * building ‘raoBust_1.3.0.0.tar.gz’
-
 ``` r
 
 # remotes::install_github("statdivlab/raoBust")
@@ -350,10 +306,11 @@ and well – especially in a way useful for microbial ecologists (my
 target audience). (Maybe I’ll try to get this note published somewhere?)
 
 But the math is straightforward and uses common tools in mathematical
-statistics… In fact, I can prove them for you quickly here. I do this to
-write down
+statistics… In fact, I can prove them for you quickly here. I do this in
+order to provide you with these results in a *transparent,
+self-contained* manner.
 
-**The validity of t-tests when the data are not normally distributed**
+### The validity of t-tests when the data are not normally distributed
 
 Formal claim: If $`X_1^a, X_2^a, \ldots, X_{n_a}^a`$ are drawn
 independently from *some* distribution with mean $`\mu_a`$ and

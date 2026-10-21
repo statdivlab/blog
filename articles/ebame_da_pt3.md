@@ -305,7 +305,7 @@ system.time({hdw_fit <- emuFit(formula = ~ exposed,
 ```
 
     ##    user  system elapsed 
-    ##   2.184   0.042   2.226
+    ##   1.752   0.020   1.773
 
 Less than a minute?! Two seconds – woohoo! (Props to Sarah Teichman for
 a lot of amazing improvements to the estimation algorithm during 2025

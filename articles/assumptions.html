@@ -177,49 +177,7 @@ the distributional assumptions that are assumed by the default
 from the data rather than imposed by a distributional model.</p>
 <p>Here’s one way you can get robust standard errors and robust score
 tests. For linear regression:</p>
-<pre><code><span><span class="co">## prettyunits  (NA -&gt; 1.2.0    ) [CRAN]</span></span>
-<span><span class="co">## progress     (NA -&gt; 1.2.3    ) [CRAN]</span></span>
-<span><span class="co">## fontLiber... (NA -&gt; 0.1.0    ) [CRAN]</span></span>
-<span><span class="co">## fontBitst... (NA -&gt; 0.1.1    ) [CRAN]</span></span>
-<span><span class="co">## fontquiver   (NA -&gt; 0.2.1    ) [CRAN]</span></span>
-<span><span class="co">## cpp11        (NA -&gt; 0.5.5    ) [CRAN]</span></span>
-<span><span class="co">## htmlwidgets  (NA -&gt; 1.6.4    ) [CRAN]</span></span>
-<span><span class="co">## gdtools      (NA -&gt; 0.5.2    ) [CRAN]</span></span>
-<span><span class="co">## iterators    (NA -&gt; 1.0.14   ) [CRAN]</span></span>
-<span><span class="co">## quadprog     (NA -&gt; 1.5-8    ) [CRAN]</span></span>
-<span><span class="co">## RcppEigen    (NA -&gt; 0.3.4.0.2) [CRAN]</span></span>
-<span><span class="co">## shape        (NA -&gt; 1.4.6.1  ) [CRAN]</span></span>
-<span><span class="co">## foreach      (NA -&gt; 1.5.2    ) [CRAN]</span></span>
-<span><span class="co">## labelled     (NA -&gt; 2.16.1   ) [CRAN]</span></span>
-<span><span class="co">## mosaicCore   (NA -&gt; 0.9.5    ) [CRAN]</span></span>
-<span><span class="co">## ggridges     (NA -&gt; 0.5.7    ) [CRAN]</span></span>
-<span><span class="co">## ggiraph      (NA -&gt; 0.9.6    ) [CRAN]</span></span>
-<span><span class="co">## RcppParallel (NA -&gt; 6.2.1    ) [CRAN]</span></span>
-<span><span class="co">## RcppArmad... (NA -&gt; 15.6.2-1 ) [CRAN]</span></span>
-<span><span class="co">## mvtnorm      (NA -&gt; 1.4-2    ) [CRAN]</span></span>
-<span><span class="co">## kinship2     (NA -&gt; 1.9.6.2  ) [CRAN]</span></span>
-<span><span class="co">## glmnet       (NA -&gt; 5.1      ) [CRAN]</span></span>
-<span><span class="co">## ggformula    (NA -&gt; 2.0.0    ) [CRAN]</span></span>
-<span><span class="co">## geeM         (NA -&gt; 0.10.1   ) [CRAN]</span></span>
-<span><span class="co">## geepack      (NA -&gt; 1.3.13   ) [CRAN]</span></span>
-<span><span class="co">## Rcpp         (NA -&gt; 1.1.2    ) [CRAN]</span></span>
-<span><span class="co">## rbibutils    (NA -&gt; 2.4.1    ) [CRAN]</span></span>
-<span><span class="co">## reformulas   (NA -&gt; 0.4.4    ) [CRAN]</span></span>
-<span><span class="co">## nloptr       (NA -&gt; 2.2.1    ) [CRAN]</span></span>
-<span><span class="co">## minqa        (NA -&gt; 1.2.8    ) [CRAN]</span></span>
-<span><span class="co">## Rdpack       (NA -&gt; 2.6.6    ) [CRAN]</span></span>
-<span><span class="co">## MESS         (NA -&gt; 0.6.0    ) [CRAN]</span></span>
-<span><span class="co">## lme4         (NA -&gt; 2.0-6    ) [CRAN]</span></span>
-<span><span class="co">## zoo          (NA -&gt; 1.9-1    ) [CRAN]</span></span>
-<span><span class="co">## geeasy       (NA -&gt; 0.1.3    ) [CRAN]</span></span>
-<span><span class="co">## sandwich     (NA -&gt; 3.1-3    ) [CRAN]</span></span></code></pre>
-<pre><code><span><span class="co">## * checking for file ‘/tmp/RtmpvWio67/remotes1b46347db91b/statdivlab-raoBust-7b6aef8/DESCRIPTION’ ... OK</span></span>
-<span><span class="co">## * preparing ‘raoBust’:</span></span>
-<span><span class="co">## * checking DESCRIPTION meta-information ... OK</span></span>
-<span><span class="co">## * checking for LF line-endings in source and make files and shell scripts</span></span>
-<span><span class="co">## * checking for empty or unneeded directories</span></span>
-<span><span class="co">## * building ‘raoBust_1.3.0.0.tar.gz’</span></span></code></pre>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># remotes::install_github("statdivlab/raoBust")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">raoBust</span><span class="op">)</span></span>
@@ -247,7 +205,7 @@ DNA copies/uL lower in participants who received treatment compared to
 those who did not receive treatment (95% CI: -1.8^{6} to 6.3^{5},
 p=0.35).</p>
 <p>For Poisson regression:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ddPCR</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">SpecimenType</span> <span class="op">==</span> <span class="st">"Sputum"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/raoBust/man/glm_test.html" class="external-link">glm_test</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">Value</span> <span class="op">~</span> <span class="va">Treatment</span>, </span>
@@ -272,7 +230,7 @@ did not receive treatment (95% CI: 0.34 to 1.5,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo></mrow><annotation encoding="application/x-tex">p=</annotation></semantics></math>
 0.35).</p>
 <p>For logistic regression:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"light_presence"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/raoBust/man/glm_test.html" class="external-link">glm_test</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">presence</span> <span class="op">~</span> <span class="va">light</span>, data <span class="op">=</span> <span class="va">light_presence</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">binomial</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"logit"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
@@ -329,7 +287,7 @@ group, and 0.011 in the other) satisfies the alternative hypothesis.
 Pfffft - who cares?! Not me. That’s not an interesting nor interpretable
 hypothesis, in my view.</p>
 <p>Furthermore, let’s look at the following dataset:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">66</span><span class="op">)</span></span>
 <span><span class="va">nn</span> <span class="op">&lt;-</span> <span class="fl">500</span></span>
 <span><span class="va">a1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">nn</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
@@ -338,7 +296,7 @@ hypothesis, in my view.</p>
 <pre><code><span><span class="co">## [1] 0.033</span></span></code></pre>
 <p>p &lt; 0.05, how exciting! Let’s look at how much the distributions
 differ:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span><span class="st">"yy"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">a1</span>, <span class="va">a2</span><span class="op">)</span>, <span class="st">"xx"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span><span class="op">)</span>, each <span class="op">=</span> <span class="va">nn</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">yy</span>, col <span class="op">=</span> <span class="va">xx</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -350,7 +308,7 @@ interested in a difference like this.</p>
 <p>Nothing has gone “wrong” here – the null is false (the distributions
 truly differ!), and the test was rejected… I just don’t care.</p>
 <p>Now let’s consider another case:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">66</span><span class="op">)</span></span>
 <span><span class="va">nn</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
 <span><span class="va">b1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">nn</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
@@ -359,7 +317,7 @@ truly differ!), and the test was rejected… I just don’t care.</p>
 <pre><code><span><span class="co">## [1] 0.028</span></span></code></pre>
 <p>Again, how exciting!! Is this a large difference in the
 distributions?</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span><span class="st">"yy"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">b1</span>, <span class="va">b2</span><span class="op">)</span>, <span class="st">"xx"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span><span class="op">)</span>, each <span class="op">=</span> <span class="va">nn</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">yy</span>, col <span class="op">=</span> <span class="va">xx</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -410,10 +368,13 @@ clearly and well – especially in a way useful for microbial ecologists
 (my target audience). (Maybe I’ll try to get this note published
 somewhere?)</p>
 <p>But the math is straightforward and uses common tools in mathematical
-statistics… In fact, I can prove them for you quickly here. I do this to
-write down</p>
-<p><strong>The validity of t-tests when the data are not normally
-distributed</strong></p>
+statistics… In fact, I can prove them for you quickly here. I do this in
+order to provide you with these results in a <em>transparent,
+self-contained</em> manner.</p>
+<div class="section level3">
+<h3 id="the-validity-of-t-tests-when-the-data-are-not-normally-distributed">The validity of t-tests when the data are not normally
+distributed<a class="anchor" aria-label="anchor" href="#the-validity-of-t-tests-when-the-data-are-not-normally-distributed"></a>
+</h3>
 <p>Formal claim: If
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>X</mi><mn>1</mn><mi>a</mi></msubsup><mo>,</mo><msubsup><mi>X</mi><mn>2</mn><mi>a</mi></msubsup><mo>,</mo><mi>…</mi><mo>,</mo><msubsup><mi>X</mi><msub><mi>n</mi><mi>a</mi></msub><mi>a</mi></msubsup></mrow><annotation encoding="application/x-tex">X_1^a, X_2^a, \ldots, X_{n_a}^a</annotation></semantics></math>
 are drawn independently from <em>some</em> distribution with mean
@@ -459,6 +420,7 @@ gives the result.</p>
 <p>Point of emphasis – I did not assume that the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>’s
 were normally distributed!!</p>
+</div>
 <div class="section level3">
 <h3 id="the-validity-of-linear-regression-when-data-are-not-normally-distributed">The validity of linear regression when data are not normally
 distributed<a class="anchor" aria-label="anchor" href="#the-validity-of-linear-regression-when-data-are-not-normally-distributed"></a>
@@ -550,7 +512,7 @@ gets large.</p>
 correlation</p>
 <p>ie random effects without distributional assumptions</p>
 <p>TODO AW debug this</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># gee_test(formula = Value ~ Treatment + SpecimenType, data = ddPCR, family = poisson(link = "log"), id = Subject)</span></span></code></pre></div>
 </div>
 </div>
