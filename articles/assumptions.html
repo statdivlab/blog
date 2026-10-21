@@ -72,7 +72,7 @@
                         <h4 data-toc-skip class="author">Amy D
 Willis</h4>
             
-            <h4 data-toc-skip class="date">Last updated October 20
+            <h4 data-toc-skip class="date">Last updated October 21
 2026</h4>
       
 
@@ -81,14 +81,13 @@ Willis</h4>
 
     
     
-<p><em>This blog post is a work in progress!!! Email me your feedback
-and questions – and encouragement to finish it.</em></p>
-<p>A better title: <strong>Robust testing and standard errors as an
-alternative to making false assumptions</strong></p>
+<p>A better, less clickbait-y, longer title: <strong>Robust testing and
+standard errors as an alternative to making false
+assumptions</strong></p>
 <p>In teaching at EBAME this year, I talked about how I strongly prefer
-“parametric tests” (like t-tests, ANOVA, linear regression, etc) to
-“non-parametric tests” (like Mann-Whitney, (insert: anova alt), (insert:
-rank correlation test name)). Participants naturally asked for more
+“parametric tests” (like t-tests, ANOVA, linear regression, and radEmu)
+to “non-parametric tests” (like Wilcoxon/Mann-Whitney, Kruskal–Wallis,
+Spearman rank, and PERMAOVA). Participants naturally asked for more
 resources and justification for this (surprisingly controversial!)
 viewpoint, inspiring this post.</p>
 <div class="section level2">
@@ -136,7 +135,7 @@ regression were first developed/invented/derived under distributional
 assumptions in the early 20th century by the founders of modern
 statistics. It wasn’t until the 1980’s that mathematical statisticians
 showed that these assumptions weren’t needed. Some of the key papers
-were</p>
+were TODO more + add links</p>
 <ul>
 <li>Robust standard errors:
 <ul>
@@ -214,7 +213,7 @@ tests. For linear regression:</p>
 <span><span class="co">## zoo          (NA -&gt; 1.9-1    ) [CRAN]</span></span>
 <span><span class="co">## geeasy       (NA -&gt; 0.1.3    ) [CRAN]</span></span>
 <span><span class="co">## sandwich     (NA -&gt; 3.1-3    ) [CRAN]</span></span></code></pre>
-<pre><code><span><span class="co">## * checking for file ‘/tmp/RtmpTKZjSo/remotes1b4210eba63d/statdivlab-raoBust-7b6aef8/DESCRIPTION’ ... OK</span></span>
+<pre><code><span><span class="co">## * checking for file ‘/tmp/RtmpvWio67/remotes1b46347db91b/statdivlab-raoBust-7b6aef8/DESCRIPTION’ ... OK</span></span>
 <span><span class="co">## * preparing ‘raoBust’:</span></span>
 <span><span class="co">## * checking DESCRIPTION meta-information ... OK</span></span>
 <span><span class="co">## * checking for LF line-endings in source and make files and shell scripts</span></span>
@@ -319,8 +318,89 @@ following reasons</p>
 don’t care about.</li>
 </ul>
 <p>I’m not going to go through every single non-parametric test, but
-here’s one example that illustrates my issue</p>
-<p>TODO (mann whitney)</p>
+here’s one example that illustrates my issue.</p>
+<p>The null hypothesis of the Wilcoxon test is that the distribution of
+the outcome is the same across the two groups (not, as is commonly
+though, that the medians are equal). This is a <em>much</em> stronger
+null hypothesis than just equality of means! Even the tiniest, most
+biologically uninteresting difference in the distribution (e.g.,
+observations occur between 0.60 and 0.61 with probability 0.01 in one
+group, and 0.011 in the other) satisfies the alternative hypothesis.
+Pfffft - who cares?! Not me. That’s not an interesting nor interpretable
+hypothesis, in my view.</p>
+<p>Furthermore, let’s look at the following dataset:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">66</span><span class="op">)</span></span>
+<span><span class="va">nn</span> <span class="op">&lt;-</span> <span class="fl">500</span></span>
+<span><span class="va">a1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">nn</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">a2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">nn</span>, <span class="fl">0</span>, <span class="fl">1.1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">signif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/wilcox.test.html" class="external-link">wilcox.test</a></span><span class="op">(</span><span class="va">a1</span>, <span class="va">a2</span><span class="op">)</span><span class="op">$</span><span class="va">p.value</span>, <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.033</span></span></code></pre>
+<p>p &lt; 0.05, how exciting! Let’s look at how much the distributions
+differ:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span><span class="st">"yy"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">a1</span>, <span class="va">a2</span><span class="op">)</span>, <span class="st">"xx"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span><span class="op">)</span>, each <span class="op">=</span> <span class="va">nn</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">yy</span>, col <span class="op">=</span> <span class="va">xx</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Wilcoxon p = "</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">signif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/wilcox.test.html" class="external-link">wilcox.test</a></span><span class="op">(</span><span class="va">a1</span>, <span class="va">a2</span><span class="op">)</span><span class="op">$</span><span class="va">p.value</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="assumptions_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="" width="75%"></p>
+<p>Is that a difference you care about? Personally, I’m not very
+interested in a difference like this.</p>
+<p>Nothing has gone “wrong” here – the null is false (the distributions
+truly differ!), and the test was rejected… I just don’t care.</p>
+<p>Now let’s consider another case:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">66</span><span class="op">)</span></span>
+<span><span class="va">nn</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
+<span><span class="va">b1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">nn</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">b2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">nn</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">signif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/wilcox.test.html" class="external-link">wilcox.test</a></span><span class="op">(</span><span class="va">b1</span>, <span class="va">b2</span><span class="op">)</span><span class="op">$</span><span class="va">p.value</span>, <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.028</span></span></code></pre>
+<p>Again, how exciting!! Is this a large difference in the
+distributions?</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span><span class="st">"yy"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">b1</span>, <span class="va">b2</span><span class="op">)</span>, <span class="st">"xx"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span><span class="op">)</span>, each <span class="op">=</span> <span class="va">nn</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">yy</span>, col <span class="op">=</span> <span class="va">xx</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Wilcoxon p = "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">signif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/wilcox.test.html" class="external-link">wilcox.test</a></span><span class="op">(</span><span class="va">b1</span>, <span class="va">b2</span><span class="op">)</span><span class="op">$</span><span class="va">p.value</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="assumptions_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="75%"></p>
+<p>Woah, yeah!! That difference is huge and obvious.</p>
+<p>So, how can you communicate that one difference is relatively large
+and the other is relatively small – in a way consistent with “different”
+according to your test. It’s not obvious, actually! The alternative
+hypothesis includes groups that differ in their means, but also groups
+that have the same mean but differ in their variances, but also groups
+that have the same mean and variance but differ in their skew, and so
+on.</p>
+<p>In contrast, a t-test for equality of means has an obvious and
+interpretable measure of effect size: the difference in the sample
+means:</p>
+<ul>
+<li>Case A: Estimated difference in means:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mover><mi>X</mi><mo accent="true">‾</mo></mover><mn>1</mn></msup><mo>−</mo><msup><mover><mi>X</mi><mo accent="true">‾</mo></mover><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\bar{X}^1 - \bar{X}^2</annotation></semantics></math>
+= 0.13, standard error in the estimate:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><msubsup><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mn>1</mn><mn>2</mn></msubsup><mi>/</mi><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msubsup><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mn>2</mn><mn>2</mn></msubsup><mi>/</mi><msub><mi>n</mi><mn>2</mn></msub></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{\hat{\sigma}_1^2/n_1+\hat{\sigma}_2^2/n_2}</annotation></semantics></math>
+= 0.065</li>
+<li>Case B: Estimated difference in means:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mover><mi>X</mi><mo accent="true">‾</mo></mover><mn>1</mn></msup><mo>−</mo><msup><mover><mi>X</mi><mo accent="true">‾</mo></mover><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\bar{X}^1 - \bar{X}^2</annotation></semantics></math>
+= -1.3, standard error in the estimate:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msqrt><mrow><msubsup><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mn>1</mn><mn>2</mn></msubsup><mi>/</mi><msub><mi>n</mi><mn>1</mn></msub><mo>+</mo><msubsup><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mn>2</mn><mn>2</mn></msubsup><mi>/</mi><msub><mi>n</mi><mn>2</mn></msub></mrow></msqrt><annotation encoding="application/x-tex">\sqrt{\hat{\sigma}_1^2/n_1+\hat{\sigma}_2^2/n_2}</annotation></semantics></math>
+= 0.53</li>
+</ul>
+<p>The magnitude of the estimate is much larger in the second case – and
+it’s one that I’d brag about in the abstract of my paper, as it captures
+that there’s not only a significant different, but – more importantly –
+a <strong>large</strong> difference, possibly one that’s biologically or
+clincially relevant.</p>
+<p>In summary, “parametric” tests don’t make parametric assumptions,
+and</p>
+<ul>
+<li>test a clear hypothesis – something interpretable</li>
+<li>have an interpretable underlying parameter, whose estimates I can
+report to communicate the magnitude of the effect size</li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="some-theory-supporting-these-claims">Some theory supporting these claims<a class="anchor" aria-label="anchor" href="#some-theory-supporting-these-claims"></a>
@@ -345,7 +425,12 @@ are drawn independently from <em>some</em> distribution with mean
 Let
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mover><mi>X</mi><mo accent="true">‾</mo></mover><mi>a</mi></msup><mo>=</mo><mfrac><mn>1</mn><msub><mi>n</mi><mi>a</mi></msub></mfrac><msubsup><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>a</mi></msub></msubsup><msub><mi>X</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\bar{X}^a = \frac{1}{n_a} \sum_{i=1}^{n_a} X_i</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mover><mi>X</mi><mo accent="true">‾</mo></mover><mi>b</mi></msup><mo>=</mo><mfrac><mn>1</mn><msub><mi>n</mi><mi>b</mi></msub></mfrac><msubsup><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>b</mi></msub></msubsup><msub><mi>X</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\bar{X}^b = \frac{1}{n_b} \sum_{i=1}^{n_b} X_i</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mi>a</mi></msub><annotation encoding="application/x-tex">\hat{\sigma}_a</annotation></semantics></math>
+be the sample standard deviation in group a’s observations, and likewise
+for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mover><mi>X</mi><mo accent="true">‾</mo></mover><mi>b</mi></msup><mo>=</mo><mfrac><mn>1</mn><msub><mi>n</mi><mi>a</mi></msub></mfrac><msubsup><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>n</mi><mi>a</mi></msub></msubsup><msub><mi>X</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\bar{X}^b = \frac{1}{n_a} \sum_{i=1}^{n_a} X_i</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mi>b</mi></msub><annotation encoding="application/x-tex">\hat{\sigma}_b</annotation></semantics></math>
 . Then</p>
 <ul>
 <li>
@@ -356,7 +441,7 @@ is an unbiased estimate of
 <li>If
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mi>a</mi></msub><mo>=</mo><msub><mi>μ</mi><mi>b</mi></msub></mrow><annotation encoding="application/x-tex">\mu_a = \mu_b</annotation></semantics></math>
 , then
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mo stretchy="false" form="prefix">|</mo><msub><mover><mi>X</mi><mo accent="true">‾</mo></mover><mi>b</mi></msub><mo>−</mo><msub><mover><mi>X</mi><mo accent="true">‾</mo></mover><mi>a</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>/</mi><msqrt><mrow><msubsup><mi>s</mi><mi>a</mi><mn>2</mn></msubsup><mi>/</mi><msub><mi>n</mi><mi>a</mi></msub><mo>+</mo><msubsup><mi>s</mi><mi>b</mi><mn>2</mn></msubsup><mi>/</mi><msub><mi>n</mi><mi>b</mi></msub></mrow></msqrt><mo>&gt;</mo><mn>1.96</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>≈</mo><mn>0.05</mn></mrow><annotation encoding="application/x-tex">\Pr\left(|\bar{X}_b-\bar{X}_a|/\sqrt{s_a^2/n_a+s_b^2/n_b}&gt;1.96\right)\approx 0.05</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">Pr</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mo stretchy="false" form="prefix">|</mo><msub><mover><mi>X</mi><mo accent="true">‾</mo></mover><mi>b</mi></msub><mo>−</mo><msub><mover><mi>X</mi><mo accent="true">‾</mo></mover><mi>a</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>/</mi><msqrt><mrow><msubsup><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mi>a</mi><mn>2</mn></msubsup><mi>/</mi><msub><mi>n</mi><mi>a</mi></msub><mo>+</mo><msubsup><mover><mi>σ</mi><mo accent="true">̂</mo></mover><mi>b</mi><mn>2</mn></msubsup><mi>/</mi><msub><mi>n</mi><mi>b</mi></msub></mrow></msqrt><mo>&gt;</mo><mn>1.96</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>≈</mo><mn>0.05</mn></mrow><annotation encoding="application/x-tex">\Pr\left(|\bar{X}_b-\bar{X}_a|/\sqrt{\hat{\sigma}_a^2/n_a+\hat{\sigma}_b^2/n_b}&gt;1.96\right)\approx 0.05</annotation></semantics></math>,
 and this approximation becomes better and better as
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mi>a</mi></msub><annotation encoding="application/x-tex">n_a</annotation></semantics></math>
 and
@@ -439,11 +524,6 @@ statistic is never exact. Lol! It’s funny how that’s considered fine.
 But TODO talk about efficiency…</p>
 </div>
 <div class="section level2">
-<h2 id="advanced-statistical-efficiency">Advanced: Statistical efficiency<a class="anchor" aria-label="anchor" href="#advanced-statistical-efficiency"></a>
-</h2>
-<p>Interestingly, if</p>
-</div>
-<div class="section level2">
 <h2 id="resources-further-reading">Resources / further reading<a class="anchor" aria-label="anchor" href="#resources-further-reading"></a>
 </h2>
 <ul>
@@ -470,7 +550,7 @@ gets large.</p>
 correlation</p>
 <p>ie random effects without distributional assumptions</p>
 <p>TODO AW debug this</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># gee_test(formula = Value ~ Treatment + SpecimenType, data = ddPCR, family = poisson(link = "log"), id = Subject)</span></span></code></pre></div>
 </div>
 </div>

@@ -1,15 +1,12 @@
 # Testing for normality? Don't bother
 
-*This blog post is a work in progress!!! Email me your feedback and
-questions – and encouragement to finish it.*
-
-A better title: **Robust testing and standard errors as an alternative
-to making false assumptions**
+A better, less clickbait-y, longer title: **Robust testing and standard
+errors as an alternative to making false assumptions**
 
 In teaching at EBAME this year, I talked about how I strongly prefer
-“parametric tests” (like t-tests, ANOVA, linear regression, etc) to
-“non-parametric tests” (like Mann-Whitney, (insert: anova alt), (insert:
-rank correlation test name)). Participants naturally asked for more
+“parametric tests” (like t-tests, ANOVA, linear regression, and radEmu)
+to “non-parametric tests” (like Wilcoxon/Mann-Whitney, Kruskal–Wallis,
+Spearman rank, and PERMAOVA). Participants naturally asked for more
 resources and justification for this (surprisingly controversial!)
 viewpoint, inspiring this post.
 
@@ -53,7 +50,7 @@ regression were first developed/invented/derived under distributional
 assumptions in the early 20th century by the founders of modern
 statistics. It wasn’t until the 1980’s that mathematical statisticians
 showed that these assumptions weren’t needed. Some of the key papers
-were
+were TODO more + add links
 
 - Robust standard errors:
   - White 1980…
@@ -128,7 +125,7 @@ tests. For linear regression:
     ## geeasy       (NA -> 0.1.3    ) [CRAN]
     ## sandwich     (NA -> 3.1-3    ) [CRAN]
 
-    ## * checking for file ‘/tmp/RtmpTKZjSo/remotes1b4210eba63d/statdivlab-raoBust-7b6aef8/DESCRIPTION’ ... OK
+    ## * checking for file ‘/tmp/RtmpvWio67/remotes1b46347db91b/statdivlab-raoBust-7b6aef8/DESCRIPTION’ ... OK
     ## * preparing ‘raoBust’:
     ## * checking DESCRIPTION meta-information ... OK
     ## * checking for LF line-endings in source and make files and shell scripts
@@ -242,9 +239,109 @@ reasons
   don’t care about.
 
 I’m not going to go through every single non-parametric test, but here’s
-one example that illustrates my issue
+one example that illustrates my issue.
 
-TODO (mann whitney)
+The null hypothesis of the Wilcoxon test is that the distribution of the
+outcome is the same across the two groups (not, as is commonly though,
+that the medians are equal). This is a *much* stronger null hypothesis
+than just equality of means! Even the tiniest, most biologically
+uninteresting difference in the distribution (e.g., observations occur
+between 0.60 and 0.61 with probability 0.01 in one group, and 0.011 in
+the other) satisfies the alternative hypothesis. Pfffft - who cares?!
+Not me. That’s not an interesting nor interpretable hypothesis, in my
+view.
+
+Furthermore, let’s look at the following dataset:
+
+``` r
+
+set.seed(66)
+nn <- 500
+a1 <- rnorm(nn, 0, 1)
+a2 <- rnorm(nn, 0, 1.1)
+signif(wilcox.test(a1, a2)$p.value, 2)
+```
+
+    ## [1] 0.033
+
+p \< 0.05, how exciting! Let’s look at how much the distributions
+differ:
+
+``` r
+
+tibble("yy" = c(a1, a2), "xx" = rep(c("1", "2"), each = nn)) %>% 
+  ggplot(aes(x = yy, col = xx)) + 
+  geom_density() +
+  theme_bw() +
+  ggtitle(paste0("Wilcoxon p = "), signif(wilcox.test(a1, a2)$p.value, 2))
+```
+
+![](assumptions_files/figure-html/unnamed-chunk-6-1.png)
+
+Is that a difference you care about? Personally, I’m not very interested
+in a difference like this.
+
+Nothing has gone “wrong” here – the null is false (the distributions
+truly differ!), and the test was rejected… I just don’t care.
+
+Now let’s consider another case:
+
+``` r
+
+set.seed(66)
+nn <- 20
+b1 <- rnorm(nn, 0, 1)
+b2 <- rnorm(nn, 1, 2)
+signif(wilcox.test(b1, b2)$p.value, 2)
+```
+
+    ## [1] 0.028
+
+Again, how exciting!! Is this a large difference in the distributions?
+
+``` r
+
+tibble("yy" = c(b1, b2), "xx" = rep(c("1", "2"), each = nn)) %>% 
+  ggplot(aes(x = yy, col = xx)) + 
+  geom_density() +
+  theme_bw() +
+  ggtitle(paste0("Wilcoxon p = ", signif(wilcox.test(b1, b2)$p.value, 2)))
+```
+
+![](assumptions_files/figure-html/unnamed-chunk-8-1.png)
+
+Woah, yeah!! That difference is huge and obvious.
+
+So, how can you communicate that one difference is relatively large and
+the other is relatively small – in a way consistent with “different”
+according to your test. It’s not obvious, actually! The alternative
+hypothesis includes groups that differ in their means, but also groups
+that have the same mean but differ in their variances, but also groups
+that have the same mean and variance but differ in their skew, and so
+on.
+
+In contrast, a t-test for equality of means has an obvious and
+interpretable measure of effect size: the difference in the sample
+means:
+
+- Case A: Estimated difference in means: $`\bar{X}^1 - \bar{X}^2`$ =
+  0.13, standard error in the estimate:
+  $`\sqrt{\hat{\sigma}_1^2/n_1+\hat{\sigma}_2^2/n_2}`$ = 0.065
+- Case B: Estimated difference in means: $`\bar{X}^1 - \bar{X}^2`$ =
+  -1.3, standard error in the estimate:
+  $`\sqrt{\hat{\sigma}_1^2/n_1+\hat{\sigma}_2^2/n_2}`$ = 0.53
+
+The magnitude of the estimate is much larger in the second case – and
+it’s one that I’d brag about in the abstract of my paper, as it captures
+that there’s not only a significant different, but – more importantly –
+a **large** difference, possibly one that’s biologically or clincially
+relevant.
+
+In summary, “parametric” tests don’t make parametric assumptions, and
+
+- test a clear hypothesis – something interpretable
+- have an interpretable underlying parameter, whose estimates I can
+  report to communicate the magnitude of the effect size
 
 ## Some theory supporting these claims
 
@@ -263,11 +360,14 @@ independently from *some* distribution with mean $`\mu_a`$ and
 $`X_1^b, X_2^b, \ldots, X_{n_b}^b`$ are drawn independently from *some*
 distribution with mean $`\mu_b`$. Let
 $`\bar{X}^a = \frac{1}{n_a} \sum_{i=1}^{n_a} X_i`$ and
-$`\bar{X}^b = \frac{1}{n_b} \sum_{i=1}^{n_b} X_i`$ . Then
+$`\hat{\sigma}_a`$ be the sample standard deviation in group a’s
+observations, and likewise for
+$`\bar{X}^b = \frac{1}{n_a} \sum_{i=1}^{n_a} X_i`$ and
+$`\hat{\sigma}_b`$ . Then
 
 - $`\bar{X}^b - \bar{X}^a`$ is an unbiased estimate of $`\mu_b - \mu_a`$
 - If $`\mu_a = \mu_b`$ , then
-  $`\Pr\left(|\bar{X}_b-\bar{X}_a|/\sqrt{s_a^2/n_a+s_b^2/n_b}>1.96\right)\approx 0.05`$,
+  $`\Pr\left(|\bar{X}_b-\bar{X}_a|/\sqrt{\hat{\sigma}_a^2/n_a+\hat{\sigma}_b^2/n_b}>1.96\right)\approx 0.05`$,
   and this approximation becomes better and better as $`n_a`$ and
   $`n_b`$ get larger and larger. That is, a t-test with unequal
   variances controls Type 1 error rates.
@@ -331,10 +431,6 @@ TODO explain
 Fun fact, even if data is not Poisson distributed, that test statistic
 is never exact. Lol! It’s funny how that’s considered fine. But TODO
 talk about efficiency…
-
-## Advanced: Statistical efficiency
-
-Interestingly, if
 
 ## Resources / further reading
 
