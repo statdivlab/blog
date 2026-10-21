@@ -59,9 +59,9 @@ Here's one way you can get robust standard errors and robust score tests. For li
 ```{r, echo = FALSE, warning=FALSE, message=FALSE, results = "hide"}
 library(tidyverse)
 select <- dplyr::select ## I do this everytime I load tidyverse
-# if (!("raoBust" %in% row.names(installed.packages()))) {
-#   remotes::install_github("statdivlab/raoBust")
-# }
+if (!("raoBust" %in% row.names(installed.packages()))) {
+  remotes::install_github("statdivlab/raoBust")
+}
 library(raoBust)
 linear1 <- ddPCR %>% 
   filter(SpecimenType == "Sputum") %>% 
